@@ -1,0 +1,15 @@
+node_modules
+**/node_modules
+**/dist
+**/build
+.git
+.git/info
+specs
+plans
+CLAUDE.md
+memory
+notes
+scratch
+server/data
+*.log
+.superpowers
