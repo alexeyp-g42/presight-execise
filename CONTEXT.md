@@ -66,8 +66,24 @@ Exists because SQLite's `LIKE` and `COLLATE NOCASE` fold ASCII only. It makes `"
 
 The generated dataset and the script that produces it (`server/src/db/seed.ts`). **Self-sufficient and truncating**: it migrates, clears, inserts, and `ANALYZE`s in one transaction, so it is safe to run repeatedly and always yields the identical dataset. "Seed" also names the per-user string handed to the avatar and name generators — disambiguate as *seed script* or *seed value* where it matters.
 
+### Cursor
+
+The opaque base64url token that advances pagination, encoding `{ sort, dir, value, id }` — where `value` is the row's value in the active sort field. Returned as `page_info.next_cursor`, `null` on the last page.
+
+It carries the `sort` and `dir` it was **minted under**, so a cursor replayed against a different sort is rejected with `CURSOR_SORT_MISMATCH` rather than silently returning wrong rows. Never appears in the shared URL — only the filters and sort round-trip there, so a reload always restarts from the first page.
+
+Say *cursor*, not "page" or "offset"; there is no page number anywhere in the system.
+
+### Contract package
+
+`@presight/shared` in `packages/shared` — the single source for the API's const arrays (`SORT_FIELDS`, `SORT_DIRS`) and response types, imported by both client and server as **`.ts` source with no build step**.
+
+Deliberately carries **no runtime dependency**: the server derives `z.enum(SORT_FIELDS)` from it, so Zod never reaches the client bundle. It works under Node's native type stripping only because pnpm symlinks it to a realpath outside `node_modules` — which is why **`pnpm deploy --legacy` is prohibited** and the Docker runtime stage must copy `packages/shared` alongside `server/node_modules`.
+
 ## Conventions
 
 - **pnpm everywhere**, no exceptions.
+- **The wire format is `snake_case` throughout**, envelope keys included (`page_info`, `has_more`, `next_cursor`) — matching the brief's own `first_name` / `sort=first_name`, so there is no mapping layer between column, JSON field, and sort value.
+- **Invalid input is a 400, never a silent correction** — including unrecognized query keys. The one exception is a selection matching nothing, which is a `200` with an empty result set, because the pinned-value rule requires it.
 - Sorted results are deterministic, with `id` as the final tie-breaker **following the sort direction** (`last_name DESC, id DESC`) so a single index serves both directions.
 - Facet ordering is likewise deterministic: `count DESC, value ASC`.
