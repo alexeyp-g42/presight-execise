@@ -1,0 +1,11 @@
+packages:
+  - client
+  - server
+  - packages/*
+
+# pnpm 11 disallows dependency build scripts unless they are listed here, and
+# `strictDepBuilds` (on by default) turns an unlisted build into a failed
+# install. This must be the map form — the pre-11 list form is ignored, and the
+# install fails with ERR_PNPM_IGNORED_BUILDS.
+allowBuilds:
+  better-sqlite3: true
