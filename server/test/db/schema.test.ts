@@ -1,26 +1,23 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { sql } from 'drizzle-orm'
-import { openDb } from '../../src/db/open-db.ts'
-import { migrate } from '../../src/db/migrate.ts'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import type { Db } from '../../src/db/open-db.ts'
 import { user_hobbies, users } from '../../src/db/schema.ts'
-import { createTempDatabase, type TempDatabase } from '../support/temp-database.ts'
+import { createMigratedDatabase, type MigratedDatabase } from '../support/temp-database.ts'
 
 /* These assert the *applied* schema, not the TypeScript declaration — the
    committed SQL is what the container runs, and one clause in it (WITHOUT
    ROWID) cannot be expressed in the schema module at all. */
 
-let temp: TempDatabase
-let db: ReturnType<typeof openDb>
+let database: MigratedDatabase
+let db: Db
 
 beforeAll(() => {
-  temp = createTempDatabase()
-  db = openDb(temp.path)
-  migrate(db)
+  database = createMigratedDatabase()
+  db = database.db
 })
 
 afterAll(() => {
-  db.$client.close()
-  temp.remove()
+  database.close()
 })
 
 const columnsOf = (table: string) =>
@@ -72,11 +69,11 @@ describe('users', () => {
 describe('user_hobbies', () => {
   it('holds the hobby name directly, keyed by (user_id, hobby)', () => {
     expect(columnsOf('user_hobbies')).toEqual(['user_id', 'hobby'])
-    expect(
-      db
-        .all<{ name: string }>(sql`SELECT name FROM pragma_table_info('user_hobbies') WHERE pk > 0`)
-        .map((column) => column.name),
-    ).toEqual(['user_id', 'hobby'])
+
+    const keyColumns = db.all<{ name: string }>(
+      sql`SELECT name FROM pragma_table_info('user_hobbies') WHERE pk > 0 ORDER BY pk`,
+    )
+    expect(keyColumns.map((column) => column.name)).toEqual(['user_id', 'hobby'])
   })
 
   it('is WITHOUT ROWID, so the primary key is the table rather than a copy of it', () => {

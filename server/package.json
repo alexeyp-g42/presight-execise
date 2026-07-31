@@ -16,9 +16,9 @@
   },
   "dependencies": {
     "better-sqlite3": "~13.0.2",
-    "drizzle-orm": "^0.45.2",
+    "drizzle-orm": "~0.45.2",
     "express": "~5.1.0",
-    "zod": "^4.4.3"
+    "zod": "~4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

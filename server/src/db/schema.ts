@@ -9,7 +9,14 @@ import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlit
    Property names are snake_case on purpose. The wire format is snake_case
    throughout (see CONTEXT.md), so a row selected here is already the shape the
    API returns: column, TS property and JSON field are one name, with nothing in
-   between that could drift. */
+   between that could drift.
+
+   There is deliberately no `avatar` column, though the settled data model (#7)
+   sketched one. The value is `/api/avatars/<id>.svg` — derived from the primary
+   key the row already has, minted by the list endpoint (#19) and served by a
+   route that takes the id as its generator seed (#22), touching no table. A
+   stored copy would be 25,000 NOT NULL strings the seed writes and nobody
+   reads, and one more thing to keep in step with the route's path. */
 
 export const users = sqliteTable(
   'users',

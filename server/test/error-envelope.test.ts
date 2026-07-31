@@ -53,9 +53,9 @@ describe('the error envelope', () => {
     })
   })
 
-  it('carries the code and status of an ApiError through unchanged', async () => {
+  it('gives an ApiError the status its code means', async () => {
     const request = appThatFailsWith(() => {
-      throw new ApiError(400, 'CURSOR_SORT_MISMATCH', 'This cursor was minted under a different sort')
+      throw new ApiError('CURSOR_SORT_MISMATCH', 'This cursor was minted under a different sort')
     })
 
     const response = await request.get('/fail').expect(400)
@@ -71,7 +71,7 @@ describe('the error envelope', () => {
   it('rejects a rejected promise the same way, with no async wrapper in the route', async () => {
     const request = appThatFailsWith(async () => {
       await Promise.resolve()
-      throw new ApiError(400, 'INVALID_CURSOR', 'Malformed cursor')
+      throw new ApiError('INVALID_CURSOR', 'Malformed cursor')
     })
 
     const response = await request.get('/fail').expect(400)

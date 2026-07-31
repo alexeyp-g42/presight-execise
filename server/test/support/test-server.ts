@@ -2,10 +2,9 @@ import supertest from 'supertest'
 import { afterAll, beforeAll } from 'vitest'
 import type { Express } from 'express'
 import { createApp } from '../../src/app.ts'
-import { migrate } from '../../src/db/migrate.ts'
-import { openDb, type Db } from '../../src/db/open-db.ts'
+import type { Db } from '../../src/db/open-db.ts'
 import type { HealthResponse } from '../../src/routes/health.ts'
-import { createTempDatabase, type TempDatabase } from './temp-database.ts'
+import { createMigratedDatabase, type MigratedDatabase } from './temp-database.ts'
 
 /* Server seam 1, used by every server test from here on: supertest over the app
    factory, pointed at a fresh temp-file database built once per test file.
@@ -30,30 +29,26 @@ export type TestServer = {
 }
 
 export const createTestServer = ({ seed }: TestServerOptions = {}): TestServer => {
-  let temp: TempDatabase | undefined
-  let db: Db | undefined
+  let database: MigratedDatabase | undefined
   let app: Express | undefined
   let request: supertest.Agent | undefined
 
   beforeAll(() => {
-    temp = createTempDatabase()
-    db = openDb(temp.path)
-    migrate(db)
-    seed?.(db)
-    app = createApp(db)
+    database = createMigratedDatabase()
+    seed?.(database.db)
+    app = createApp(database.db)
     request = supertest(app)
   })
 
   afterAll(() => {
-    db?.$client.close()
-    temp?.remove()
+    database?.close()
   })
 
   /* The handle is returned before `beforeAll` has run, so every field is a
      getter over a value that only exists inside a test. */
   const built = <T>(value: T | undefined, name: string): T => {
     if (value === undefined) {
-      throw new Error(`${name} is built in beforeAll — read it from inside a test, not at module scope`)
+      throw new Error(`${name} is built in beforeAll — read it inside a test, not at module scope`)
     }
     return value
   }
@@ -63,7 +58,7 @@ export const createTestServer = ({ seed }: TestServerOptions = {}): TestServer =
       return built(app, 'app')
     },
     get db() {
-      return built(db, 'db')
+      return built(database, 'the database').db
     },
     get request() {
       return built(request, 'request')

@@ -11,13 +11,11 @@ import { healthHandler } from './routes/health.ts'
 export const createApp = (db: Db): Express => {
   const app = express()
 
-  /* Version-fingerprints the framework for anyone scanning. Nothing needs it. */
-  app.disable('x-powered-by')
-
   /* Express's application-wide slot for shared handles: the app owns the
-     database it was built with. Route modules take `db` as an argument rather
-     than reaching for it — this is the one place to find the handle from an
-     app, and `test/app.test.ts` holds the factory to that. */
+     database it was built with. Nothing reads it yet — the query modules that
+     land next take `db` as an argument rather than reaching for it — but it is
+     where an app's handle is found, and `test/app.test.ts` asserts the app
+     carries the one it was built with. */
   app.locals.db = db
 
   app.get('/api/health', healthHandler)

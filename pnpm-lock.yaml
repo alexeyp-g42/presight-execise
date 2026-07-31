@@ -91,13 +91,13 @@ importers:
         specifier: ~13.0.2
         version: 13.0.2
       drizzle-orm:
-        specifier: ^0.45.2
+        specifier: ~0.45.2
         version: 0.45.2(@types/better-sqlite3@7.6.13)(better-sqlite3@13.0.2)
       express:
         specifier: ~5.1.0
         version: 5.1.0(supports-color@7.2.0)
       zod:
-        specifier: ^4.4.3
+        specifier: ~4.4.3
         version: 4.4.3
     devDependencies:
       '@eslint/js':

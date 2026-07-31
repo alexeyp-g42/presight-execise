@@ -1,9 +1,9 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it, vi } from 'vitest'
 import { sql } from 'drizzle-orm'
-import { DEFAULT_DATABASE_PATH, openDb } from '../../src/db/open-db.ts'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { migrate } from '../../src/db/migrate.ts'
+import { DEFAULT_DATABASE_PATH, openDb } from '../../src/db/open-db.ts'
 import { users } from '../../src/db/schema.ts'
 import { createTempDatabase } from '../support/temp-database.ts'
 
