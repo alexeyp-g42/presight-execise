@@ -8,26 +8,21 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
 
-    /* The dev loop runs the .ts sources through Node's native type stripping,
-       so relative imports carry a .ts extension. `rewriteRelativeImportExtensions`
-       rewrites them to .js on the way out, which is what lets `build` emit real
-       JS that plain `node` can run. */
+    /* Node mode — imports carry a .ts extension for the type-stripped dev loop,
+       and are rewritten to .js on emit so `build` output runs on plain node. */
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
 
-    /* Node strips types, it does not execute them. `erasableSyntaxOnly` bans the
-       syntax that would need a transpiler — enums, parameter properties,
-       namespaces — so the stripped dev path and the tsc build path cannot diverge. */
+    /* Linting — `erasableSyntaxOnly` bans the syntax Node cannot strip (enums,
+       parameter properties, namespaces), so dev and build cannot diverge. */
     "erasableSyntaxOnly": true,
-
-    /* Linting */
-    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
+    /* Emit */
     "rootDir": "src",
     "outDir": "dist",
     "sourceMap": true

@@ -7,10 +7,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "node --watch src/index.ts",
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
+    "build": "tsc",
     "lint": "eslint .",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc --noEmit",
     "seed": "node src/db/seed.ts"
   },
   "dependencies": {
