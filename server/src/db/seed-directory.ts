@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm'
 import { migrate } from './migrate.ts'
 import type { Db } from './open-db.ts'
 import { user_hobbies, users } from './schema.ts'
-import { DEFAULT_USER_COUNT, generateDirectory } from './seed-dataset.ts'
+import { DEFAULT_USER_COUNT, generateDataset } from './seed-dataset.ts'
 
 /* SQLite caps a statement at 32,766 bound parameters. `users` binds 6 per row
    and `user_hobbies` 2, so these leave room to spare while still cutting 25,000
@@ -42,7 +42,7 @@ export const seedDirectory = (
 ): SeedSummary => {
   migrate(db)
 
-  const directory = generateDirectory({ userCount })
+  const dataset = generateDataset({ userCount })
 
   db.transaction((tx) => {
     /* Explicit rather than leaning on the foreign key's cascade: the cascade is
@@ -52,10 +52,10 @@ export const seedDirectory = (
     tx.delete(user_hobbies).run()
     tx.delete(users).run()
 
-    for (const chunk of chunked(directory.users, USER_CHUNK)) {
+    for (const chunk of chunked(dataset.users, USER_CHUNK)) {
       tx.insert(users).values(chunk).run()
     }
-    for (const chunk of chunked(directory.hobbies, HOBBY_CHUNK)) {
+    for (const chunk of chunked(dataset.hobbies, HOBBY_CHUNK)) {
       tx.insert(user_hobbies).values(chunk).run()
     }
 
@@ -66,5 +66,5 @@ export const seedDirectory = (
     tx.run(sql`ANALYZE`)
   })
 
-  return { users: directory.users.length, hobbies: directory.hobbies.length }
+  return { users: dataset.users.length, hobbies: dataset.hobbies.length }
 }

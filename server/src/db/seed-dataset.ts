@@ -29,12 +29,14 @@ const HOBBY_COUNT_WEIGHTS = [4, 9, 16, 18, 16, 13, 8, 5, 3, 2, 6]
 const MIN_AGE = 18
 const MAX_AGE = 75
 
-/* Printable ASCII. `normalizeSearchText` folds every letter the seeded locales
-   systematically produce, so anything left over is upstream noise — mojibake in
-   faker's own data, or a stray typographic quote — and the fix is to draw
-   again, not to widen the fold map for one bad row. Five attempts is far more
-   than the observed rates need; past that the English faker answers, so a
-   locale that turned entirely non-Latin upstream degrades instead of hanging. */
+/* Printable ASCII. `normalizeSearchText` folds every character the seeded
+   locales systematically produce, so what reaches here is upstream noise rather
+   than a letter — measured across the vocabulary it is one stray C1 control
+   byte in ~90,000 draws, mojibake in faker's own data. Drawing again is the
+   right answer for that; widening the fold map for one bad row is not. Five
+   attempts is far more than that rate needs, and past them the English faker
+   answers, so a locale that turned non-Latin upstream degrades instead of
+   hanging. */
 const ASCII_ONLY = /^[ -~]*$/
 const MAX_NAME_ATTEMPTS = 5
 
@@ -52,7 +54,7 @@ export type GeneratedHobby = {
   hobby: string
 }
 
-export type GeneratedDirectory = {
+export type GeneratedDataset = {
   users: GeneratedUser[]
   hobbies: GeneratedHobby[]
 }
@@ -138,9 +140,9 @@ const drawName = (faker: Faker, english: Faker): { first: string; last: string }
 /* The whole dataset, in memory, before a single row is written. 25,000 users
    and ~100,000 hobby rows is a few megabytes, and generating first keeps the
    write transaction as short as the disk allows. */
-export const generateDirectory = ({
+export const generateDataset = ({
   userCount = DEFAULT_USER_COUNT,
-}: { userCount?: number } = {}): GeneratedDirectory => {
+}: { userCount?: number } = {}): GeneratedDataset => {
   const chance = new Faker({ locale: [en, base] })
   chance.seed(GENERATOR_SEED)
   const roll = () => chance.number.float({ min: 0, max: 1 })

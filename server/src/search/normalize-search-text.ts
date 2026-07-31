@@ -3,11 +3,12 @@
    are a single indivisible code point — `ø` is not `o` plus a stroke — and
    those are what this map is for.
 
-   Every entry is a letter the seed's own locales actually produce, which is the
-   bar for adding another: `ı` and `ə` earn their place because Turkish and
-   Azerbaijani names are full of them, and without them those rows would sit in
-   the directory unsearchable. Anything upstream emits that this map does not
-   cover is redrawn by the seed rather than stored — see `seed-dataset.ts`. */
+   Every entry is a character the seed's own locales actually produce, which is
+   the bar for adding another: `ı` and `ə` earn their place because Turkish and
+   Azerbaijani names are full of them, `ɔ` and `ε` because 3% of the Ghanaian
+   names carry an Akan open vowel, and without them those rows would sit in the
+   directory unsearchable. Anything upstream emits that this map does not cover
+   is redrawn by the seed rather than stored — see `seed-dataset.ts`. */
 const FOLD_MAP: Record<string, string> = {
   ø: 'o',
   ł: 'l',
@@ -16,6 +17,16 @@ const FOLD_MAP: Record<string, string> = {
   æ: 'ae',
   ı: 'i',
   ə: 'e',
+  ɔ: 'o',
+  /* Greek epsilon, which is what faker's Ghanaian data uses for the Akan open
+     e — not the Latin `ɛ` the orthography calls for. Folded as observed. */
+  ε: 'e',
+  /* Not letters, and not diacritics either: these are the typographic quotes
+     French and Uzbek names carry where a keyboard offers only `'`. One Uzbek
+     name in fourteen holds one, so without these the name on the card and the
+     name a viewer can type would be different strings. */
+  '‘': "'",
+  '’': "'",
 }
 
 const FOLDABLE = new RegExp(`[${Object.keys(FOLD_MAP).join('')}]`, 'gu')

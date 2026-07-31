@@ -1,12 +1,12 @@
 import { createHash } from 'node:crypto'
 import { sql } from 'drizzle-orm'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { openDb, type Db } from '../../src/db/open-db.ts'
+import type { Db } from '../../src/db/open-db.ts'
 import { DEFAULT_USER_COUNT } from '../../src/db/seed-dataset.ts'
 import { seedDirectory } from '../../src/db/seed-directory.ts'
 import { HOBBIES, NATIONALITIES } from '../../src/db/seed-vocabulary.ts'
 import { normalizeSearchText } from '../../src/search/normalize-search-text.ts'
-import { createTempDatabase } from '../support/temp-database.ts'
+import { createUnmigratedDatabase } from '../support/temp-database.ts'
 
 /* Every test here seeds its own database, because seeding is the thing under
    test and the first thing it does is migrate a file that has no tables. */
@@ -18,12 +18,8 @@ afterEach(() => {
 })
 
 const openUnmigrated = (): Db => {
-  const temp = createTempDatabase()
-  const db = openDb(temp.path)
-  cleanups.push(() => {
-    db.$client.close()
-    temp.remove()
-  })
+  const { db, close } = createUnmigratedDatabase()
+  cleanups.push(close)
   return db
 }
 
@@ -51,13 +47,10 @@ describe('the seeded directory', () => {
   let close: () => void
 
   beforeAll(() => {
-    const temp = createTempDatabase()
-    db = openDb(temp.path)
+    const opened = createUnmigratedDatabase()
+    db = opened.db
+    close = opened.close
     seedDirectory(db)
-    close = () => {
-      db.$client.close()
-      temp.remove()
-    }
   })
 
   afterAll(() => close())

@@ -62,7 +62,7 @@ The lowercased, diacritic-stripped form of a name, stored in `users.search_name`
 
 Exists because SQLite's `LIKE` and `COLLATE NOCASE` fold ASCII only. It makes `"ozcan"` match Özcan and `"BJORN"` match Bjørn. Not to be confused with database normalisation, which this project deliberately does *not* apply to hobbies.
 
-NFD plus a diacritic strip does most of the work. The rest is an explicit **fold map** for letters that are a single indivisible code point rather than a base plus a combining mark, which NFD leaves untouched: `ø ł đ ß æ ı ə`. The bar for adding an entry is that a seeded locale actually produces the letter.
+NFD plus a diacritic strip does most of the work. The rest is an explicit **fold map** for characters NFD leaves untouched: letters that are a single indivisible code point rather than a base plus a combining mark (`ø ł đ ß æ ı ə ɔ ε`), and the typographic quotes that stand in for an apostrophe (`‘ ’`). The bar for adding an entry is that a seeded locale actually produces the character — anything else is upstream noise, and the seed redraws the name rather than storing it.
 
 ### Seed
 

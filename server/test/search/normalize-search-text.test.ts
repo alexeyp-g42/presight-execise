@@ -21,7 +21,22 @@ describe('normalizeSearchText', () => {
        own rows would be unsearchable. */
     ['Açıkalın', 'acikalin'],
     ['Ələkbərova', 'elekberova'],
+    /* Akan open vowels, in 3% of the Ghanaian names the seed draws. */
+    ['Ntiamoa-Akyeamfuɔ', 'ntiamoa-akyeamfuo'],
+    ['Karikari-Akyerεko', 'karikari-akyereko'],
   ])('folds the letters NFD leaves intact: %s', (input, expected) => {
+    expect(normalizeSearchText(input)).toBe(expected)
+  })
+
+  /* The typographic quotes are what French and Uzbek names actually carry — one
+     Uzbek name in fourteen holds a `‘` or a `’`. A viewer types the straight
+     apostrophe their keyboard has, so both have to land on it or the row is
+     unreachable by the name printed on its own card. */
+  it.each([
+    ['Jeanne d’Arc', "jeanne d'arc"],
+    ['Ulug‘bekov', "ulug'bekov"],
+    ['E’zoza', "e'zoza"],
+  ])('folds typographic quotes onto the apostrophe a keyboard types: %s', (input, expected) => {
     expect(normalizeSearchText(input)).toBe(expected)
   })
 
