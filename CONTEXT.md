@@ -20,6 +20,14 @@ A free-text interest, stored as a row in `user_hobbies` rather than as a normali
 
 A single value per user, stored as a **display name** ("Germany"), not an ISO code. One column on `users`.
 
+### Avatar
+
+A DiceBear SVG **drawn on demand from the user id**, served by `GET /api/avatars/<id>.svg` and cached for a year as `immutable`. Not a column: the id is the generator's seed, so the value the API returns is the id in a URL and the route answers without touching a table — including before the seed script has run.
+
+Offline by construction, which is the point — the reviewer runs this from compose, and every rejected alternative failed there first (`faker.image.avatar()` returns a remote URL; data URIs put ~50KB of avatar on every page; a static set has 25,000 users sharing a couple of hundred faces).
+
+The route is the **one exception to the error envelope**, and only on success: it returns SVG rather than JSON. A path that names no avatar — anything but a run of digits — is an ordinary `NOT_FOUND`.
+
 ### Selection
 
 The set of values the viewer has currently picked in one dimension — e.g. `hobbies=[chess, math]`. Distinct from a **facet**, which is what the sidebar offers. Do not call a selection a "filter"; a filter is the whole predicate.
@@ -82,7 +90,9 @@ Say *cursor*, not "page" or "offset"; there is no page number anywhere in the sy
 
 ### Contract package
 
-`@presight/shared` in `packages/shared` — the single source for the API's const arrays (`SORT_FIELDS`, `SORT_DIRS`) and response types, imported by both client and server as **`.ts` source with no build step**.
+`@presight/shared` in `packages/shared` — the single source for the API's const arrays (`SORT_FIELDS`, `SORT_DIRS`), the defaults those arrays are read against (`DEFAULT_SORT`, `DEFAULT_DIR`), and the response types, imported by both client and server as **`.ts` source with no build step**.
+
+Defaults live here because they are contract, not implementation detail: the client parses a hand-edited `?sort=nickname` against the arrays and falls back without a request, and the server applies the same pair when the params are absent — so the two cannot disagree about what "no sort" means.
 
 Deliberately carries **no runtime dependency**: the server derives `z.enum(SORT_FIELDS)` from it, so Zod never reaches the client bundle. It works under Node's native type stripping only because pnpm symlinks it to a realpath outside `node_modules` — which is why **`pnpm deploy --legacy` is prohibited** and the Docker runtime stage must copy `packages/shared` alongside `server/node_modules`.
 
