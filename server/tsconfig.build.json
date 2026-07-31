@@ -1,0 +1,12 @@
+{
+  /* The emitting config: `src` only, so tests and the vitest config never
+     reach `dist` and the runtime image. Checking happens in `tsconfig.json`,
+     which covers all three. */
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"]
+}

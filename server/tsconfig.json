@@ -22,10 +22,11 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* Emit */
-    "rootDir": "src",
-    "outDir": "dist",
+    /* Emit — this config only checks; `tsconfig.build.json` narrows to `src`
+       and turns the emit back on. Editors pick this one up, so test files get
+       the same settings as the code they exercise. */
+    "noEmit": true,
     "sourceMap": true
   },
-  "include": ["src"]
+  "include": ["src", "test", "vitest.config.ts"]
 }

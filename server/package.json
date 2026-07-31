@@ -7,9 +7,10 @@
   "license": "MIT",
   "scripts": {
     "dev": "node --watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc",
+    "test": "vitest run",
     "seed": "node src/db/seed.ts"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "eslint": "^10.6.0",
     "globals": "^17.7.0",
     "typescript": "~6.0.2",
-    "typescript-eslint": "^8.62.0"
+    "typescript-eslint": "^8.62.0",
+    "vitest": "^4.1.10"
   }
 }
