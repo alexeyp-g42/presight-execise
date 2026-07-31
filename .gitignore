@@ -5,8 +5,9 @@ node_modules/
 /.pnp
 .pnp.js
 
-# testing
-/coverage
+# testing — unanchored, because a coverage run inside a package writes to that
+# package's directory rather than to the repo root
+coverage/
 
 # production
 dist/
