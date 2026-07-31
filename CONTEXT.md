@@ -58,13 +58,19 @@ A facet array is therefore `20 + k` entries long, where *k* is the number of pin
 
 ### Normalised search text
 
-The lowercased, diacritic-stripped form of a name, stored in `users.search_name` and produced by the shared `normalizeSearchText()` module. Applied at **both** seed time and query time — the same function, so the two cannot drift.
+The lowercased, diacritic-stripped form of a name, stored in `users.search_name` and produced by the shared `normalizeSearchText()` module (`server/src/search/normalize-search-text.ts`). Applied at **both** seed time and query time — the same function, so the two cannot drift.
 
 Exists because SQLite's `LIKE` and `COLLATE NOCASE` fold ASCII only. It makes `"ozcan"` match Özcan and `"BJORN"` match Bjørn. Not to be confused with database normalisation, which this project deliberately does *not* apply to hobbies.
 
+NFD plus a diacritic strip does most of the work. The rest is an explicit **fold map** for letters that are a single indivisible code point rather than a base plus a combining mark, which NFD leaves untouched: `ø ł đ ß æ ı ə`. The bar for adding an entry is that a seeded locale actually produces the letter.
+
 ### Seed
 
-The generated dataset and the script that produces it (`server/src/db/seed.ts`). **Self-sufficient and truncating**: it migrates, clears, inserts, and `ANALYZE`s in one transaction, so it is safe to run repeatedly and always yields the identical dataset. "Seed" also names the per-user string handed to the avatar and name generators — disambiguate as *seed script* or *seed value* where it matters.
+The generated dataset and the script that produces it (`server/src/db/seed.ts`). **Self-sufficient and truncating**: it migrates, then clears, inserts and `ANALYZE`s in one transaction, so it is safe to run repeatedly and always yields the identical dataset. (Migration sits just outside that transaction because Drizzle's migrator issues its own `BEGIN`/`COMMIT` and SQLite has no nested transactions; it is atomic and idempotent on its own.) 25,000 users by default, overridable with `SEED_USER_COUNT`.
+
+Both vocabularies — 80 hobbies, 50 nationalities — are **Zipf-weighted by list order**, so a top-20 is a genuine truncation of a long tail and the counts stay meaningful after selections stack. Names are drawn per nationality from that nationality's own faker locale, **Latin script only**: a name in a script the viewer cannot type is a row search can never reach.
+
+"Seed" also names the per-user string handed to the avatar and name generators — disambiguate as *seed script* or *seed value* where it matters.
 
 ### Cursor
 
