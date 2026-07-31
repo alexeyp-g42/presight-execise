@@ -82,7 +82,9 @@ Say *cursor*, not "page" or "offset"; there is no page number anywhere in the sy
 
 ### Contract package
 
-`@presight/shared` in `packages/shared` — the single source for the API's const arrays (`SORT_FIELDS`, `SORT_DIRS`) and response types, imported by both client and server as **`.ts` source with no build step**.
+`@presight/shared` in `packages/shared` — the single source for the API's const arrays (`SORT_FIELDS`, `SORT_DIRS`), the defaults those arrays are read against (`DEFAULT_SORT`, `DEFAULT_DIR`), and the response types, imported by both client and server as **`.ts` source with no build step**.
+
+Defaults live here because they are contract, not implementation detail: the client parses a hand-edited `?sort=nickname` against the arrays and falls back without a request, and the server applies the same pair when the params are absent — so the two cannot disagree about what "no sort" means.
 
 Deliberately carries **no runtime dependency**: the server derives `z.enum(SORT_FIELDS)` from it, so Zod never reaches the client bundle. It works under Node's native type stripping only because pnpm symlinks it to a realpath outside `node_modules` — which is why **`pnpm deploy --legacy` is prohibited** and the Docker runtime stage must copy `packages/shared` alongside `server/node_modules`.
 
