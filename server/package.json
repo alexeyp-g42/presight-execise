@@ -1,13 +1,28 @@
 {
-  "name": "presight-server",
+  "name": "server",
   "version": "1.0.0",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
   "license": "MIT",
+  "scripts": {
+    "dev": "node --watch src/index.ts",
+    "build": "tsc",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "seed": "node src/db/seed.ts"
+  },
   "dependencies": {
+    "better-sqlite3": "~13.0.2",
     "express": "~5.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/express": "~5.0.1",
-    "@types/node-fetch": "~2.6.12"
+    "@types/node": "^24.13.2",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.62.0"
   }
 }

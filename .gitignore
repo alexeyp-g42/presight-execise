@@ -11,7 +11,10 @@ node_modules/
 # production
 dist/
 build/
-scripts/
+
+# database
+*.sqlite
+*.sqlite-*
 
 # misc
 .DS_Store

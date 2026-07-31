@@ -1,17 +1,20 @@
 {
   "name": "presight-execise",
   "version": "1.0.0",
+  "private": true,
   "repository": "",
   "author": "",
   "license": "MIT",
-  "workspaces": [
-    "client",
-    "server"
-  ],
-  "scripts": {
-    "start": "lerna run start"
+  "packageManager": "pnpm@11.18.0",
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=11"
   },
-  "devDependencies": {
-    "lerna": "~8.2.1"
+  "scripts": {
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "seed": "pnpm --filter server run seed"
   }
 }
