@@ -1,6 +1,7 @@
 import express, { type Express } from 'express'
 import type { Db } from './db/open-db.ts'
 import { errorHandler, notFoundHandler } from './http/error-handler.ts'
+import { avatarHandler } from './routes/avatar.ts'
 import { healthHandler } from './routes/health.ts'
 
 /* A factory over a database handle, not a module that opens one. That is what
@@ -19,6 +20,10 @@ export const createApp = (db: Db): Express => {
   app.locals.db = db
 
   app.get('/api/health', healthHandler)
+  /* The `.svg` is part of the path, not a format negotiation: the list endpoint
+     mints `/api/avatars/<id>.svg` as a plain URL for an `<img>` tag, and an
+     extension is what makes it read as one. */
+  app.get('/api/avatars/:id.svg', avatarHandler)
 
   /* Both stay last, and in this order: `notFoundHandler` turns "matched
      nothing" into an `ApiError`, and `errorHandler` is the single place any

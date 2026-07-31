@@ -20,6 +20,14 @@ A free-text interest, stored as a row in `user_hobbies` rather than as a normali
 
 A single value per user, stored as a **display name** ("Germany"), not an ISO code. One column on `users`.
 
+### Avatar
+
+A DiceBear SVG **drawn on demand from the user id**, served by `GET /api/avatars/<id>.svg` and cached for a year as `immutable`. Not a column: the id is the generator's seed, so the value the API returns is the id in a URL and the route answers without touching a table — including before the seed script has run.
+
+Offline by construction, which is the point — the reviewer runs this from compose, and every rejected alternative failed there first (`faker.image.avatar()` returns a remote URL; data URIs put ~50KB of avatar on every page; a static set has 25,000 users sharing a couple of hundred faces).
+
+The route is the **one exception to the error envelope**, and only on success: it returns SVG rather than JSON. A path that names no avatar — anything but a run of digits — is an ordinary `NOT_FOUND`.
+
 ### Selection
 
 The set of values the viewer has currently picked in one dimension — e.g. `hobbies=[chess, math]`. Distinct from a **facet**, which is what the sidebar offers. Do not call a selection a "filter"; a filter is the whole predicate.

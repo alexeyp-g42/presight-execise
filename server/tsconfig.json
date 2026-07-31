@@ -8,6 +8,12 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
 
+    /* The avatar style ships as a JSON definition, imported with a type
+       attribute. Node resolves it natively; without this, only TypeScript
+       cannot see it. Nothing here imports JSON from `src` — a bare specifier
+       into `node_modules` is not copied into `dist` and needs no emit. */
+    "resolveJsonModule": true,
+
     /* Node mode — imports carry a .ts extension for the type-stripped dev loop,
        and are rewritten to .js on emit so `build` output runs on plain node. */
     "allowImportingTsExtensions": true,
