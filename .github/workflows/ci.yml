@@ -1,0 +1,145 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Group by PR number, falling back to the ref, so pushing three times to a
+# branch leaves one run alive. `main` has its own group, so PR activity never
+# cancels a `main` run — though a second push to `main` still supersedes the
+# first, which is what you want for a branch badge.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # lint / typecheck / test / build stay sequential steps in ONE job because
+  # they share one `node_modules`. Four jobs would pay the install four times to
+  # save ~60s of wall clock. Order is cheapest-and-most-likely-to-fire first, so
+  # a formatting slip fails in ~60s rather than ~3 minutes.
+  verify:
+    name: lint / typecheck / test / build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      # MUST precede setup-node: `cache: pnpm` shells out to pnpm to locate the
+      # store. No `version:` input — action-setup reads `packageManager` from
+      # the root package.json, so the pin lives in exactly one place.
+      - uses: pnpm/action-setup@v6.0.9
+
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      # Same flag the Docker build uses, so the two cannot drift. It also
+      # asserts the lockfile is committed and in sync with every manifest — a
+      # drifted lockfile is a red build rather than a silently different image.
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  # Runs concurrently with `verify`, so total wall clock is max() not sum().
+  docker:
+    name: docker compose smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      # Self-arming gate: there is nothing to boot until the compose stack
+      # lands, and this step needs no edit when it does. Gating on the compose
+      # stack rather than on the server entrypoint is deliberate — under this
+      # build order the entrypoint lands several tickets before the Dockerfile,
+      # so gating on it would redden CI for the tickets in between.
+      - name: Is there a compose stack to boot yet?
+        id: gate
+        run: |
+          if [ -f docker-compose.yml ] && [ -f Dockerfile ]; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          elif [ -f docker-compose.yml ] || [ -f Dockerfile ]; then
+            # Half a stack is never a valid state, and it is the one way this
+            # gate could fail silently: it would report "nothing to boot" on a
+            # repo that plainly has something to boot. Loud, not skipped.
+            echo '::error::Half a compose stack - the gate needs BOTH docker-compose.yml and Dockerfile at the repo root, and found only one.'
+            exit 1
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::No compose stack yet - skipping the Docker smoke test.'
+          fi
+
+      - if: steps.gate.outputs.ready == 'true'
+        uses: docker/setup-buildx-action@v4.2.0
+
+      # `load: true` puts the image in the local daemon under the same tag as
+      # compose's `image:` key, so `up` reuses it instead of rebuilding.
+      - name: Build image
+        if: steps.gate.outputs.ready == 'true'
+        uses: docker/build-push-action@v7.3.0
+        with:
+          context: .
+          target: runtime
+          load: true
+          tags: presight-app:latest # must match `image:` in docker-compose.yml
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # `--wait` implies detached mode, so no -d. The generous timeout covers
+      # the first-boot seed.
+      - name: First boot (empty volume -> seeds)
+        if: steps.gate.outputs.ready == 'true'
+        run: docker compose up --wait --wait-timeout 180
+
+      - name: Smoke the API and the SPA
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          curl -fsS http://localhost:3000/api/health
+          # No query params on purpose. Unrecognized keys are a 400 by contract,
+          # and `limit` lands with the sorting ticket while the Dockerfile that
+          # arms this job does not wait on it — so `?limit=1` would 400 on the
+          # very commit that switches the gate on. A bare list proves the seed.
+          # -o file, not `| head`: SIGPIPE under bash pipefail would fail the step.
+          curl -fsS http://localhost:3000/api/users -o users.json
+          head -c 500 users.json; echo
+          # A real field, not just a 200 — empty-but-200 is the failure mode
+          # that matters, and it is what an unseeded volume looks like.
+          grep -q 'first_name' users.json
+          curl -fsS -o index.html http://localhost:3000/
+          grep -q 'id="root"' index.html # SPA served from the same origin
+
+      - name: Second boot (seeded volume -> must reuse, not reseed or come up empty)
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          docker compose down
+          docker compose up --wait --wait-timeout 60
+          docker compose logs app --no-color > boot2.log
+          grep -q 'skipping seed' boot2.log
+          curl -fsS http://localhost:3000/api/users -o users2.json
+          grep -q 'first_name' users2.json
+
+      - name: Container logs
+        if: failure() && steps.gate.outputs.ready == 'true'
+        run: docker compose logs --no-color --tail 300
+
+      - name: Tear down
+        if: always() && steps.gate.outputs.ready == 'true'
+        run: docker compose down -v --remove-orphans
