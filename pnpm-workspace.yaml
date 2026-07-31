@@ -9,3 +9,7 @@ packages:
 # install fails with ERR_PNPM_IGNORED_BUILDS.
 allowBuilds:
   better-sqlite3: true
+  # drizzle-kit's bundler. Dev-only — it generates the migration SQL and never
+  # reaches the runtime image — but the build has to be allowed or CI's
+  # `--frozen-lockfile` install fails outright rather than skipping it.
+  esbuild: true

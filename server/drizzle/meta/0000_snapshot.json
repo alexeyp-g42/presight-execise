@@ -1,0 +1,158 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "a87a0b19-f9b1-4712-a2a5-e5091b5b1de6",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "user_hobbies": {
+      "name": "user_hobbies",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "hobby": {
+          "name": "hobby",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_user_hobbies_hobby": {
+          "name": "idx_user_hobbies_hobby",
+          "columns": [
+            "hobby",
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "user_hobbies_user_id_users_id_fk": {
+          "name": "user_hobbies_user_id_users_id_fk",
+          "tableFrom": "user_hobbies",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "user_hobbies_user_id_hobby_pk": {
+          "columns": [
+            "user_id",
+            "hobby"
+          ],
+          "name": "user_hobbies_user_id_hobby_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "users": {
+      "name": "users",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "age": {
+          "name": "age",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nationality": {
+          "name": "nationality",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "search_name": {
+          "name": "search_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_users_first_name": {
+          "name": "idx_users_first_name",
+          "columns": [
+            "first_name",
+            "id"
+          ],
+          "isUnique": false
+        },
+        "idx_users_last_name": {
+          "name": "idx_users_last_name",
+          "columns": [
+            "last_name",
+            "id"
+          ],
+          "isUnique": false
+        },
+        "idx_users_age": {
+          "name": "idx_users_age",
+          "columns": [
+            "age",
+            "id"
+          ],
+          "isUnique": false
+        },
+        "idx_users_nationality": {
+          "name": "idx_users_nationality",
+          "columns": [
+            "nationality",
+            "id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
