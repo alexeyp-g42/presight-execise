@@ -10,8 +10,9 @@ permissions:
   contents: read
 
 # Group by PR number, falling back to the ref, so pushing three times to a
-# branch leaves one run alive. `main` pushes group separately and are never
-# cancelled by PR activity.
+# branch leaves one run alive. `main` has its own group, so PR activity never
+# cancels a `main` run — though a second push to `main` still supersedes the
+# first, which is what you want for a branch badge.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -75,6 +76,12 @@ jobs:
         run: |
           if [ -f docker-compose.yml ] && [ -f Dockerfile ]; then
             echo 'ready=true' >> "$GITHUB_OUTPUT"
+          elif [ -f docker-compose.yml ] || [ -f Dockerfile ]; then
+            # Half a stack is never a valid state, and it is the one way this
+            # gate could fail silently: it would report "nothing to boot" on a
+            # repo that plainly has something to boot. Loud, not skipped.
+            echo '::error::Half a compose stack - the gate needs BOTH docker-compose.yml and Dockerfile at the repo root, and found only one.'
+            exit 1
           else
             echo 'ready=false' >> "$GITHUB_OUTPUT"
             echo '::notice::No compose stack yet - skipping the Docker smoke test.'
@@ -106,8 +113,12 @@ jobs:
         if: steps.gate.outputs.ready == 'true'
         run: |
           curl -fsS http://localhost:3000/api/health
+          # No query params on purpose. Unrecognized keys are a 400 by contract,
+          # and `limit` lands with the sorting ticket while the Dockerfile that
+          # arms this job does not wait on it — so `?limit=1` would 400 on the
+          # very commit that switches the gate on. A bare list proves the seed.
           # -o file, not `| head`: SIGPIPE under bash pipefail would fail the step.
-          curl -fsS 'http://localhost:3000/api/users?limit=1' -o users.json
+          curl -fsS http://localhost:3000/api/users -o users.json
           head -c 500 users.json; echo
           # A real field, not just a 200 — empty-but-200 is the failure mode
           # that matters, and it is what an unseeded volume looks like.
@@ -122,7 +133,7 @@ jobs:
           docker compose up --wait --wait-timeout 60
           docker compose logs app --no-color > boot2.log
           grep -q 'skipping seed' boot2.log
-          curl -fsS 'http://localhost:3000/api/users?limit=1' -o users2.json
+          curl -fsS http://localhost:3000/api/users -o users2.json
           grep -q 'first_name' users2.json
 
       - name: Container logs
