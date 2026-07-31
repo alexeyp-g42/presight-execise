@@ -53,6 +53,18 @@ describe('the error envelope', () => {
     })
   })
 
+  /* Express decodes path parameters while matching, so this throws a `URIError`
+     before any handler runs — there is no route that could catch it. Left
+     alone it is an `INTERNAL`, which would make a typo in a URL look like a
+     server fault. */
+  it('turns a path that cannot be decoded into a 404, not a 500', async () => {
+    const response = await server.request.get('/api/avatars/%zz.svg').expect(404)
+
+    expect(response.body as ApiErrorBody).toEqual({
+      error: { code: 'NOT_FOUND', message: expect.stringContaining('/api/avatars/%zz.svg') },
+    })
+  })
+
   it('gives an ApiError the status its code means', async () => {
     const request = appThatFailsWith(() => {
       throw new ApiError('CURSOR_SORT_MISMATCH', 'This cursor was minted under a different sort')

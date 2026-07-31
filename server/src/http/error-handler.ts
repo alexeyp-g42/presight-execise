@@ -1,4 +1,4 @@
-import type { ErrorRequestHandler, RequestHandler } from 'express'
+import type { ErrorRequestHandler, Request, RequestHandler } from 'express'
 import { ZodError } from 'zod'
 import { ApiError, type ApiErrorBody, type FieldError } from './api-error.ts'
 
@@ -9,7 +9,7 @@ export const notFoundHandler: RequestHandler = (req, _res, next) => {
 
 /* The single exit for every failure in the app. One middleware rather than
    per-route handling, so no route can invent its own error shape. */
-export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
+export const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
   /* A failure after the response has started is the one case Express must
      finish itself — it destroys the socket rather than appending JSON to a body
      already on the wire. */
@@ -18,7 +18,7 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
     return
   }
 
-  const apiError = toApiError(error)
+  const apiError = toApiError(error, req)
 
   if (apiError.status >= 500) {
     /* Swallowed for the client, kept for the operator: the stack is the only
@@ -29,8 +29,22 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
   res.status(apiError.status).json(toBody(apiError))
 }
 
-const toApiError = (error: unknown): ApiError => {
+const toApiError = (error: unknown, req: Request): ApiError => {
   if (error instanceof ApiError) return error
+
+  /* Express decodes path parameters while it is still matching, so a malformed
+     percent-escape — `/api/avatars/%zz.svg` — throws before any handler runs.
+     No route can catch this one; the envelope is the only place it can be
+     turned into an answer.
+
+     A 404, not the 500 an unrecognised error would otherwise get: a path that
+     does not decode names nothing, which is what `notFoundHandler` would have
+     said had the request survived matching and fallen through to it. Checked
+     after `ApiError` so a layer that means something more specific by a bad URL
+     can still say so. */
+  if (error instanceof URIError) {
+    return new ApiError('NOT_FOUND', `No route matches ${req.method} ${req.originalUrl}`)
+  }
 
   /* Validation lands here as a `ZodError` from the query-string boundary.
      Zod's own `flatten()` was rejected as the wire shape: it leaks the

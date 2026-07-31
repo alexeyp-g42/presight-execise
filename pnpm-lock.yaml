@@ -87,6 +87,12 @@ importers:
 
   server:
     dependencies:
+      '@dicebear/core':
+        specifier: ~10.3.2
+        version: 10.3.2
+      '@dicebear/styles':
+        specifier: ~10.2.0
+        version: 10.2.0
       '@faker-js/faker':
         specifier: ~10.5.0
         version: 10.5.0
@@ -267,6 +273,13 @@ packages:
   '@csstools/css-tokenizer@4.0.0':
     resolution: {integrity: sha512-QxULHAm7cNu72w97JUNCBFODFaXpbDg+dP8b/oWFAZ2MTRppA3U00Y2L1HqaS4J6yBqxwa/Y3nMBaxVKbB/NsA==}
     engines: {node: '>=20.19.0'}
+
+  '@dicebear/core@10.3.2':
+    resolution: {integrity: sha512-gTTnN8rwQqlyqy3Pe4wllSARty26sA2a+pVu4XIBA45Tfix5htjwtwoi6w2VYLs5sx67dfYUR7AmcEAv8DfPQw==}
+    engines: {node: '>=22.0.0'}
+
+  '@dicebear/styles@10.2.0':
+    resolution: {integrity: sha512-o4rw0+7Q7sSAyr9YxYrUe3jCxlOAzEcBvbQvl4hQKQ+9WNmBK4p7wGYvsmGeJbxFh8y/Ux6ltrCPyXBIDV6qYA==}
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
@@ -2764,6 +2777,10 @@ snapshots:
       css-tree: 3.2.1
 
   '@csstools/css-tokenizer@4.0.0': {}
+
+  '@dicebear/core@10.3.2': {}
+
+  '@dicebear/styles@10.2.0': {}
 
   '@drizzle-team/brocli@0.10.2': {}
 
