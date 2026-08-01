@@ -62,11 +62,9 @@ export type FacetEntry = {
   count: number
 }
 
-/* The facets endpoint's whole answer, and deliberately not part of the list
-   response: facets are page- and sort-independent, so bundling them would
-   re-ship 40+ entries on every infinite-scroll fetch and imply they vary by
-   page. `total` rides along because it depends on exactly the filter params
-   this endpoint already takes.
+/* Its own response rather than a field on `UserListResponse`, which is the
+   contract half of the endpoint split: nothing in here varies by page or by
+   sort, and a shape that carried it alongside `page_info` would say otherwise.
 
    Both arrays are `20 + k` long — top 20 by `count DESC, value ASC`, plus the
    selected values that missed the cut, at their true count. The client renders

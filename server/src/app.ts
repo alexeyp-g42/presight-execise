@@ -32,9 +32,6 @@ export const createApp = (db: Db): Express => {
 
   app.get('/api/health', healthHandler)
   app.get('/api/users', createListUsersHandler(db))
-  /* Two endpoints over the same predicate, split on cache key: the list takes
-     the filters plus sort/dir/limit/cursor, this one takes the filters alone
-     and rejects the other four. */
   app.get('/api/facets', createFacetsHandler(db))
   /* The `.svg` is part of the path, not a format negotiation: the list endpoint
      mints `/api/avatars/<id>.svg` as a plain URL for an `<img>` tag, and an

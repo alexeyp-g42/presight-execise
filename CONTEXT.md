@@ -36,6 +36,8 @@ The set of values the viewer has currently picked in one dimension — e.g. `hob
 
 The users matching the complete predicate — text, nationalities, and hobbies applied together. Written `|result|` when the count is meant.
 
+Its size travels as **`total`** on the facets endpoint and nowhere else. It depends on exactly the filter params, costs one `COUNT(*)` in a handler already running two aggregates over the same predicate, and so never recomputes while the viewer scrolls. It is the second number in "Showing 50 of 1,234"; the list endpoint answers a page and deliberately cannot say what stands behind it.
+
 ### ALL-of / ANY-of
 
 The two filter semantics, and the reason facet behaviour is asymmetric.

@@ -5,14 +5,12 @@ import { parseUserFilterParams } from '../users/user-filter-params.ts'
 
 /* A second endpoint rather than a second field on the list response, split on
    cache key: facets are page- **and** sort-independent, so bundling them would
-   re-run two aggregates and re-ship 40+ entries on every infinite-scroll fetch,
-   and would make the response shape imply that facets vary by page.
+   re-run two aggregates and re-ship 40+ entries on every infinite-scroll fetch.
  *
- * The split is enforced here rather than left to the client's discipline: this
- * handler parses the *filter* params, which are strict, so a stray `sort`,
- * `dir`, `limit` or `cursor` is a loud 400 naming the offending key rather than
- * a parameter silently ignored. The client composes its two param builders in
- * the same direction — list params are filter params plus the four. */
+ * The split is enforced here rather than left to the caller's discipline. This
+ * parses the *filter* params — the list's minus `sort`, `dir`, `limit` and
+ * `cursor` — and they are strict, so any of those four arriving is a loud 400
+ * naming the offending key rather than a parameter silently ignored. */
 export const createFacetsHandler =
   (db: Db): RequestHandler =>
   (req, res) => {

@@ -356,12 +356,18 @@ describe('strict query validation', () => {
     return body
   }
 
-  it.each(['sort=age', 'dir=desc', 'limit=10', 'cursor=abc'])(
-    'rejects a list-only key as unrecognized: %s',
-    async (query) => {
-      await expectInvalidQuery(query)
-    },
-  )
+  /* Naming the key is the whole value of rejecting it: a 400 that says only
+     "invalid query" leaves the caller guessing which of the four it sent. */
+  it.each([
+    ['sort', 'sort=age'],
+    ['dir', 'dir=desc'],
+    ['limit', 'limit=10'],
+    ['cursor', 'cursor=abc'],
+  ])('rejects the list-only key %s as unrecognized, and names it', async (key, query) => {
+    const body = await expectInvalidQuery(query)
+
+    expect(JSON.stringify(body)).toContain(key)
+  })
 
   it('rejects a singular near-miss of a real key', async () => {
     const body = await expectInvalidQuery('nationality=Turkey')

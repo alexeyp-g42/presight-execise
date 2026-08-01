@@ -43,9 +43,9 @@ export type TestServer = {
   readonly request: supertest.Agent
   /** Typed request helpers. Test bodies read as data in, data out. */
   getHealth: () => Promise<HealthResponse>
-  /** A 200 from the list endpoint. Failures are asserted through `request`. */
+  /** A 200 from the list endpoint. */
   listUsers: (params?: QueryParams) => Promise<UserListResponse>
-  /** A 200 from the facets endpoint. Failures are asserted through `request`. */
+  /** A 200 from the facets endpoint. */
   getFacets: (params?: QueryParams) => Promise<FacetsResponse>
 }
 
@@ -74,6 +74,16 @@ export const createTestServer = ({ seed }: TestServerOptions = {}): TestServer =
     return value
   }
 
+  /* The 200 path for a filtered endpoint, so a test body reads as params in,
+     response out. Failures are asserted through `request`, where the status and
+     the envelope are the point. */
+  const ok = async <T>(path: string, params: QueryParams): Promise<T> => {
+    const response = await built(request, 'request')
+      .get(`${path}?${toQueryString(params)}`)
+      .expect(200)
+    return response.body as T
+  }
+
   return {
     get app() {
       return built(app, 'app')
@@ -88,17 +98,7 @@ export const createTestServer = ({ seed }: TestServerOptions = {}): TestServer =
       const response = await built(request, 'request').get('/api/health').expect(200)
       return response.body as HealthResponse
     },
-    listUsers: async (params = {}) => {
-      const response = await built(request, 'request')
-        .get(`/api/users?${toQueryString(params)}`)
-        .expect(200)
-      return response.body as UserListResponse
-    },
-    getFacets: async (params = {}) => {
-      const response = await built(request, 'request')
-        .get(`/api/facets?${toQueryString(params)}`)
-        .expect(200)
-      return response.body as FacetsResponse
-    },
+    listUsers: (params = {}) => ok<UserListResponse>('/api/users', params),
+    getFacets: (params = {}) => ok<FacetsResponse>('/api/facets', params),
   }
 }
