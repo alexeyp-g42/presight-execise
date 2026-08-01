@@ -112,7 +112,7 @@ The search box's local, ephemeral copy of what the viewer is typing, ahead of th
 
 The distinction is the point. The draft paints on the keystroke, so the input never feels sticky; the search text changes 300ms later, when the client's **one timer** writes the URL. One timer, at that boundary, debounces the address bar and the fetch together — which is what makes *the URL always describes what is on screen* an invariant rather than a hope. A second timer anywhere in the client is a regression, not an optimisation.
 
-The draft flows from the search text on mount and when the URL moves on its own (the back button, a pasted link); it never flows the other way except through that timer.
+The draft flows from the search text on mount and when the URL moves on its own (the back button, a pasted link); it never flows the other way except through that timer — trimmed on the way, because the API module drops blank `q` and a URL reading `?q=+++` would advertise a filter no request carries.
 
 ### Contract package
 

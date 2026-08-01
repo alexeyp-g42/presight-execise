@@ -1,5 +1,5 @@
+import { useSharedUrl } from "./useSharedUrl";
 import { useUserDirectoryQuery } from "./useUserDirectoryQuery";
-import { useDirectoryViewParams } from "./useDirectoryViewParams";
 import { UserSearchInput } from "./UserSearchInput";
 import { UserSortControls } from "./UserSortControls";
 import { VirtualizedUserList } from "./VirtualizedUserList";
@@ -15,7 +15,7 @@ import { VirtualizedUserList } from "./VirtualizedUserList";
    facet sidebar (#26) fills them from the same place. */
 
 export const UserDirectoryPage = () => {
-  const { searchText, sort, dir, setSearchText, setSort, setDir } = useDirectoryViewParams();
+  const { searchText, sort, dir, setSearchText, setSort, setDir } = useSharedUrl();
 
   const { users, hasNextPage, isFetchingNextPage, fetchNextPage } = useUserDirectoryQuery({
     /* The URL's search text, not the input's draft — one timer, at the URL

@@ -8,10 +8,10 @@ import {
 } from "@presight/shared";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 
-/* The address bar, as the view. Search text, sort field and sort direction live
-   in the query string **in exactly the shape the API accepts**, so there is no
-   translation layer between what the viewer can paste to a colleague and what
-   the client sends — the same `q`, `sort` and `dir`, spelled the same way.
+/* The shared URL, read and written. Search text, sort field and sort direction
+   live in the query string **in exactly the shape the API accepts**, so there
+   is no translation layer between what the viewer can paste to a colleague and
+   what the client sends — the same `q`, `sort` and `dir`, spelled the same way.
 
    nuqs runs router-free here: the app has zero routes, so a router imported for
    `useSearchParams` would be ~15kb and a provider for nothing. It also patches
@@ -45,7 +45,7 @@ const sortDirParser = parseAsStringLiteral(SORT_DIRS)
   .withDefault(DEFAULT_DIR)
   .withOptions({ history: "push" });
 
-export type DirectoryViewParams = {
+export type SharedUrlResult = {
   /** The committed search text. Blank is the whole directory, never `q=`. */
   searchText: string;
   sort: SortField;
@@ -56,7 +56,7 @@ export type DirectoryViewParams = {
   setDir: (dir: SortDir) => void;
 };
 
-export const useDirectoryViewParams = (): DirectoryViewParams => {
+export const useSharedUrl = (): SharedUrlResult => {
   const [searchText, setSearchText] = useQueryState("q", searchTextParser);
   const [sort, setSort] = useQueryState("sort", sortFieldParser);
   const [dir, setDir] = useQueryState("dir", sortDirParser);

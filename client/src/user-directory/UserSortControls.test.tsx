@@ -1,7 +1,7 @@
 import { SORT_DIRS, SORT_FIELDS } from "@presight/shared";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { UserSortControls } from "./UserSortControls";
+import { UserSortControls, type UserSortControlsProps } from "./UserSortControls";
 
 /* Client seam 3. The assertion that earns this file is the coverage one, and
    it is written against the contract package's arrays rather than a list
@@ -9,7 +9,7 @@ import { UserSortControls } from "./UserSortControls";
    `SORT_FIELDS`, and this test fails if it does not. The values are asserted
    too, not just the labels — they are what reaches the API as `?sort=`. */
 
-const renderSortControls = (overrides: Partial<Parameters<typeof UserSortControls>[0]> = {}) => {
+const renderSortControls = (overrides: Partial<UserSortControlsProps> = {}) => {
   const onSortChange = vi.fn();
   const onDirChange = vi.fn();
 

@@ -25,7 +25,7 @@ export type DebouncedSearchDraftInput = {
   onSearchTextChange: (searchText: string) => void;
 };
 
-export type DebouncedSearchDraft = {
+export type DebouncedSearchDraftResult = {
   /** What the input paints: the viewer's keystrokes, ahead of the URL. */
   draft: string;
   updateDraft: (draft: string) => void;
@@ -34,7 +34,7 @@ export type DebouncedSearchDraft = {
 export const useDebouncedSearchDraft = ({
   searchText,
   onSearchTextChange,
-}: DebouncedSearchDraftInput): DebouncedSearchDraft => {
+}: DebouncedSearchDraftInput): DebouncedSearchDraftResult => {
   const [draft, setDraft] = useState(searchText);
 
   /* What this hook last handed to the URL. It is what tells an external change
@@ -42,7 +42,7 @@ export const useDebouncedSearchDraft = ({
      arriving back as a prop — the first must replace the draft, the second
      must leave the keystrokes typed since the commit alone. */
   const committedSearchText = useRef(searchText);
-  const pendingCommit = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingCommitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* Held in a ref rather than closed over, so the timer always calls the
      current handler and `updateDraft` never has to be rebuilt to keep up. */
@@ -53,9 +53,9 @@ export const useDebouncedSearchDraft = ({
   });
 
   const cancelPendingCommit = useCallback(() => {
-    if (pendingCommit.current !== null) {
-      clearTimeout(pendingCommit.current);
-      pendingCommit.current = null;
+    if (pendingCommitTimer.current !== null) {
+      clearTimeout(pendingCommitTimer.current);
+      pendingCommitTimer.current = null;
     }
   }, []);
 
@@ -81,10 +81,17 @@ export const useDebouncedSearchDraft = ({
       setDraft(nextDraft);
       cancelPendingCommit();
 
-      pendingCommit.current = setTimeout(() => {
-        pendingCommit.current = null;
-        committedSearchText.current = nextDraft;
-        commit.current(nextDraft);
+      pendingCommitTimer.current = setTimeout(() => {
+        pendingCommitTimer.current = null;
+        /* Trimmed on the way out, and only on the way out: the draft keeps the
+           space the viewer typed, while the URL commits what the request will
+           actually carry. The API module drops blank `q`, so an untrimmed
+           commit would put `?q=+++` in the address bar describing a filter no
+           request ever sends — and the URL is supposed to *be* the view. */
+        const nextSearchText = nextDraft.trim();
+
+        committedSearchText.current = nextSearchText;
+        commit.current(nextSearchText);
       }, SEARCH_DEBOUNCE_MS);
     },
     [cancelPendingCommit],

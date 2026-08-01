@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { DIRECTORY_CONTROL_SURFACE } from "./directoryControlSurface";
 import { useDebouncedSearchDraft } from "./useDebouncedSearchDraft";
 
 /* The search box, and deliberately nothing else: it is handed the committed
@@ -41,7 +42,7 @@ export const UserSearchInput = ({ searchText, onSearchTextChange }: UserSearchIn
         onChange={(event) => updateDraft(event.target.value)}
         placeholder={SEARCH_LABEL}
         autoComplete="off"
-        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-2 focus:outline-offset-2 focus:outline-slate-400"
+        className={`${DIRECTORY_CONTROL_SURFACE} w-full px-3 placeholder:text-slate-400`}
       />
     </div>
   );

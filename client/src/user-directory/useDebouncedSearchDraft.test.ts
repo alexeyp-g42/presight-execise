@@ -69,6 +69,30 @@ describe("useDebouncedSearchDraft", () => {
     expect(onSearchTextChange).toHaveBeenCalledExactlyOnceWith("");
   });
 
+  it("commits the search text the request will carry, not the spaces around it", () => {
+    const { result, onSearchTextChange } = renderDraft("");
+
+    act(() => result.current.updateDraft("  van der Berg "));
+    act(() => vi.runAllTimers());
+
+    /* The API module drops blank `q`, so an untrimmed commit would leave the
+       URL describing a filter no request carries. Inner spaces are the
+       viewer's — a full name typed with one is a real search. */
+    expect(onSearchTextChange).toHaveBeenCalledExactlyOnceWith("van der Berg");
+    /* And the box keeps what was typed: the trim is what the URL takes, not a
+       correction applied to the viewer mid-keystroke. */
+    expect(result.current.draft).toBe("  van der Berg ");
+  });
+
+  it("commits a search box holding only spaces as blank", () => {
+    const { result, onSearchTextChange } = renderDraft("smith");
+
+    act(() => result.current.updateDraft("   "));
+    act(() => vi.runAllTimers());
+
+    expect(onSearchTextChange).toHaveBeenCalledExactlyOnceWith("");
+  });
+
   it("adopts a search text that changed underneath it, as the back button does", () => {
     const { result, rerender } = renderDraft("smith");
 

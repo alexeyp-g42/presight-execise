@@ -1,5 +1,6 @@
 import { SORT_DIRS, SORT_FIELDS, type SortDir, type SortField } from "@presight/shared";
 import { useId } from "react";
+import { DIRECTORY_CONTROL_LABEL, DIRECTORY_CONTROL_SURFACE } from "./directoryControlSurface";
 
 /* The order the directory is read in, as two native selects.
 
@@ -25,17 +26,17 @@ const SORT_DIR_LABELS: Record<SortDir, string> = {
   desc: "Descending",
 };
 
-type UserSortControlsProps = {
+/* Exported so the test can build props from the same type the component takes,
+   rather than restating them — and declared here, above the component, per
+   `CLAUDE.md`. */
+export type UserSortControlsProps = {
   sort: SortField;
   dir: SortDir;
   onSortChange: (sort: SortField) => void;
   onDirChange: (dir: SortDir) => void;
 };
 
-const SELECT_CLASSES =
-  "rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-slate-400 focus:outline-2 focus:outline-offset-2 focus:outline-slate-400";
-
-const LABEL_CLASSES = "text-xs font-medium text-slate-500";
+const SELECT_CLASSES = `${DIRECTORY_CONTROL_SURFACE} px-2`;
 
 export const UserSortControls = ({
   sort,
@@ -48,16 +49,17 @@ export const UserSortControls = ({
 
   return (
     <div className="flex shrink-0 items-center gap-2">
-      <label htmlFor={sortFieldId} className={LABEL_CLASSES}>
+      <label htmlFor={sortFieldId} className={DIRECTORY_CONTROL_LABEL}>
         Sort by
       </label>
 
       <select
         id={sortFieldId}
         value={sort}
-        /* The cast is the boundary being crossed once, deliberately: the DOM
-           types every option value as a bare string, and every option here
-           comes from `SORT_FIELDS`. */
+        /* The cast is a deliberate boundary crossing, and it is safe for a
+           reason visible three lines below: the DOM types every option value as
+           a bare string, and every option this select has comes from
+           `SORT_FIELDS`. The same holds for the direction select. */
         onChange={(event) => onSortChange(event.target.value as SortField)}
         className={SELECT_CLASSES}
       >
@@ -68,7 +70,7 @@ export const UserSortControls = ({
         ))}
       </select>
 
-      <label htmlFor={sortDirId} className={`${LABEL_CLASSES} sr-only sm:not-sr-only`}>
+      <label htmlFor={sortDirId} className={`${DIRECTORY_CONTROL_LABEL} sr-only sm:not-sr-only`}>
         Direction
       </label>
 

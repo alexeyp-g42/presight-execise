@@ -33,8 +33,8 @@ importers:
         specifier: ^1.18.1
         version: 1.19.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
       nuqs:
-        specifier: ^2.9.4
-        version: 2.9.4(react@19.2.8)
+        specifier: ^2.9.3
+        version: 2.9.3(react@19.2.8)
       react:
         specifier: ^19.2.7
         version: 19.2.8
@@ -2198,8 +2198,8 @@ packages:
     resolution: {integrity: sha512-wRNIrw4DmVLKQlbgOMdkMx27Wrpzes2hh5Jtbi2bjPd+4wJstWIqP5A+lscnqbm0xxmT5Bpg8Lec5ItEBwx6BQ==}
     engines: {node: '>=18'}
 
-  nuqs@2.9.4:
-    resolution: {integrity: sha512-lsz3NyCOKmuNAyW052i9RWqcTntoYb2Qm6FxSWnkTDwOJnGS6fzpXDAp0VcwTevw3xgnWebYpDr9rm6+o4DHbw==}
+  nuqs@2.9.3:
+    resolution: {integrity: sha512-Hdb4WfGMGX2dH0GCPFxdSevA2hgTSQs+kv+1G0OPr43/LIm1cyXIZSp0zCd7a/ZZXhbbCBDbyjXKPWHx/aBNWA==}
     peerDependencies:
       '@remix-run/react': '>=2'
       '@tanstack/react-router': ^1
@@ -4422,7 +4422,7 @@ snapshots:
 
   node-releases@2.0.51: {}
 
-  nuqs@2.9.4(react@19.2.8):
+  nuqs@2.9.3(react@19.2.8):
     dependencies:
       '@standard-schema/spec': 1.1.0
       react: 19.2.8
