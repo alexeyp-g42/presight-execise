@@ -201,17 +201,29 @@ const digestOf = (db: Db): string =>
 
 describe('running the seed again', () => {
   /* At the full size, because this is the claim the README makes: clone, seed,
-     seed again, and the directory you are looking at is the same one. */
-  it('yields the identical dataset, not a second copy of it', () => {
-    const db = openUnmigrated()
+     seed again, and the directory you are looking at is the same one.
 
-    seedDirectory(db)
-    const first = digestOf(db)
-    seedDirectory(db)
+     Hence the raised timeout, and only here: two 25,000-user seeds plus two
+     digests over every row is the most work any single test in the suite does,
+     and the default 5s is a budget it was already spending most of on a busy
+     CI runner. Left at the default, what fails first is the machine being
+     loaded rather than the seed being non-deterministic — and that reads as
+     this test's own claim breaking. The other cases run at sizes chosen to be
+     quick, so the default stays where it is for them. */
+  it(
+    'yields the identical dataset, not a second copy of it',
+    () => {
+      const db = openUnmigrated()
 
-    expect(digestOf(db)).toBe(first)
-    expect(countOf(db, sql`SELECT count(*) AS count FROM users`)).toBe(DEFAULT_USER_COUNT)
-  })
+      seedDirectory(db)
+      const first = digestOf(db)
+      seedDirectory(db)
+
+      expect(digestOf(db)).toBe(first)
+      expect(countOf(db, sql`SELECT count(*) AS count FROM users`)).toBe(DEFAULT_USER_COUNT)
+    },
+    30_000,
+  )
 
   /* Truncating rather than guarded. A row-count guard would make the second run
      silently do nothing, with no way to reseed short of deleting the file. */
