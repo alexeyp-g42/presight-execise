@@ -1,4 +1,4 @@
-import type { SortDir, SortField, UserListResponse } from "@presight/shared";
+import type { FacetsResponse, SortDir, SortField, UserListResponse } from "@presight/shared";
 import axios from "axios";
 
 /* The one module that talks to the API, and the only place a query string is
@@ -119,3 +119,11 @@ export const fetchUserPage = (
   signal?: AbortSignal,
 ): Promise<UserListResponse> =>
   getJson<UserListResponse>("/users", buildListUsersParams(request), signal);
+
+/* What the result set is made of, plus its size. Takes a `UserFilter` and hands
+   it to the *base* builder, which is what keeps the endpoint split honest from
+   this side: the facets route parses the filter params strictly, so a `sort`
+   reaching it would be a 400 naming the key — and the only builder in scope
+   here cannot emit one. */
+export const fetchFacets = (filter: UserFilter, signal?: AbortSignal): Promise<FacetsResponse> =>
+  getJson<FacetsResponse>("/facets", buildUserFilterParams(filter), signal);

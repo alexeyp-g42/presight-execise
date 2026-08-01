@@ -15,9 +15,9 @@ export type UserDirectoryView = UserFilter & {
   dir: SortDir;
 };
 
-/* Filter *and* sort, where the facets key (#26) is filter-only — so changing
-   the sort refetches the list and leaves the facets alone, with no coordination
-   between them beyond the two endpoints having different params. */
+/* Filter *and* sort, where the facets key is filter-only — so changing the sort
+   refetches the list and leaves the sidebar alone, with no coordination between
+   them beyond the two endpoints having different params. */
 export const userDirectoryQueryKey = (view: UserDirectoryView) => ["users", view] as const;
 
 export type UserDirectoryQueryResult = {

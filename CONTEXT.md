@@ -98,7 +98,7 @@ Unlike `sort` and `dir`, it lives in the server rather than in the contract pack
 
 ### Shared URL
 
-The client's whole view state, in the query string: search text, sort field, sort direction, and — once the sidebar lands — the selections. Written **in exactly the shape the API accepts** (`q`, `sort`, `dir`, repeated `hobbies` / `nationalities` keys), so there is no translation layer between the address bar and the request, and pasting the URL to a colleague hands them the view rather than a description of it.
+The client's whole view state, in the query string: search text, sort field, sort direction, and both selections. Written **in exactly the shape the API accepts** (`q`, `sort`, `dir`, repeated `hobbies` / `nationalities` keys), so there is no translation layer between the address bar and the request, and pasting the URL to a colleague hands them the view rather than a description of it.
 
 Held by nuqs, running **router-free**: the app has zero routes, so the adapter reads and writes `window.location` directly. `sort` and `dir` are parsed against the contract package's arrays **at the client boundary**, so a hand-edited `?sort=nickname` falls back to `DEFAULT_SORT` client-side and never reaches the API.
 
