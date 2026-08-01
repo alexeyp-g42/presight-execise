@@ -12,7 +12,9 @@
    every one of those affordances again, in a codebase where the mouse path has
    been working the whole time. */
 
-export type FacetChipToggleProps = {
+import { DIRECTORY_TOGGLE_FOCUS_RING } from "./directoryControlSurface";
+
+type FacetChipToggleProps = {
   /** The facet value, verbatim — what the request will carry. */
   value: string;
   /** How much of the result set it covers. `0` is a real answer, not a reason to hide. */
@@ -22,16 +24,11 @@ export type FacetChipToggleProps = {
 };
 
 /* Selected reads as filled, unselected as outlined — a difference in weight as
-   well as in hue, so the state survives a monochrome display and the ~8% of men
-   who would read the two greens as one colour. */
-const SELECTED_CHIP = "border-slate-900 bg-slate-900 text-white";
-const UNSELECTED_CHIP = "border-slate-200 bg-white text-slate-700 hover:border-slate-400";
-
-/* `focus-visible` rather than `focus`: the ring is for the viewer who arrived
-   by keyboard, and painting it after every mouse click is the noise that gets
-   focus rings removed altogether. */
-const CHIP_FOCUS_RING =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500";
+   well as in hue, so the state survives a monochrome display and the readers
+   who would see the two fills as one colour. */
+const SELECTED_CHIP_SURFACE = "border-slate-900 bg-slate-900 text-white";
+const UNSELECTED_CHIP_SURFACE =
+  "border-slate-200 bg-white text-slate-700 hover:border-slate-400";
 
 export const FacetChipToggle = ({ value, count, isSelected, onToggle }: FacetChipToggleProps) => (
   <button
@@ -40,8 +37,8 @@ export const FacetChipToggle = ({ value, count, isSelected, onToggle }: FacetChi
        is a button. `aria-pressed` is the toggle-button state. */
     aria-pressed={isSelected}
     onClick={() => onToggle(value)}
-    className={`flex w-full items-center justify-between gap-2 rounded-full border px-3 py-1 text-left text-xs transition-colors ${CHIP_FOCUS_RING} ${
-      isSelected ? SELECTED_CHIP : UNSELECTED_CHIP
+    className={`flex w-full items-center justify-between gap-2 rounded-full border px-3 py-1 text-left text-xs transition-colors ${DIRECTORY_TOGGLE_FOCUS_RING} ${
+      isSelected ? SELECTED_CHIP_SURFACE : UNSELECTED_CHIP_SURFACE
     }`}
   >
     {/* `min-w-0` is what lets a long free-text hobby truncate rather than push

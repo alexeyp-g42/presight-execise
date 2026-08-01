@@ -92,7 +92,10 @@ export const FacetFilterSidebar = ({
        than as a pane that scrolls on its own. It moves to the side in the row
        layout, where it does the same job between the two panes. */
     <aside
-      aria-label="Filters"
+      /* Not "Filters": a *filter* in this project is the whole predicate, and
+         the plural would name each chip as one. The verb phrase says what the
+         landmark is for without inventing a second word for a selection. */
+      aria-label="Filter the directory"
       className="max-h-56 w-full shrink-0 overflow-y-auto overscroll-contain border-b border-slate-200 px-3 pb-3 sm:px-4 lg:max-h-none lg:w-72 lg:border-r lg:border-b-0 lg:pb-0"
     >
       {facets && (

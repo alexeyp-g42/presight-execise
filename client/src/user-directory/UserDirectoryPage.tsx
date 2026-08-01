@@ -66,7 +66,17 @@ export const UserDirectoryPage = () => {
         <FacetFilterSidebar
           facets={facets}
           /* Every page fetched so far, which is what "showing" means when the
-             list is one continuous scroll rather than a run of pages. */
+             list is one continuous scroll rather than a run of pages.
+           *
+           * Known transient, stated rather than papered over: the two numbers
+           * come from two queries, and only the facets one keeps its previous
+           * response across a filter change — so for the length of one request
+           * this reads "Showing 0 of <the previous total>". Holding the old
+           * count instead needs the list's loading state, which
+           * `useUserDirectoryQuery` deliberately does not expose yet; that
+           * lands with the rest of the list's status handling in #27, and this
+           * pair should be resolved there rather than by growing a second
+           * source of truth for it here. */
           shownCount={users.length}
           selectedHobbies={hobbies}
           selectedNationalities={nationalities}

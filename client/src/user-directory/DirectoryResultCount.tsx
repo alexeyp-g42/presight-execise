@@ -8,7 +8,7 @@
    the viewer scrolls — the list endpoint answers a page and deliberately cannot
    say what stands behind it. */
 
-export type DirectoryResultCountProps = {
+type DirectoryResultCountProps = {
   /** Users on screen — every page fetched so far, not one page's worth. */
   shownCount: number;
   /** `total` from the facets response: the size of the whole result set. */
