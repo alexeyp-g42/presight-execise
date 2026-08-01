@@ -8,7 +8,6 @@ import {
   type UserListResponse,
 } from '@presight/shared'
 import { describe, expect, it } from 'vitest'
-import type { ApiErrorBody } from '../../src/http/api-error.ts'
 import { DIRECTORY, type FixtureUser, seedDirectoryFixture } from '../support/directory-fixture.ts'
 import { createTestServer } from '../support/test-server.ts'
 
@@ -23,7 +22,7 @@ const server = createTestServer({ seed: seedDirectoryFixture })
 
 /* The whole fixture in one page: 60 rows, under the 100-row ceiling. The
    assertions below are then the complete order rather than its first 50. */
-const WHOLE_FIXTURE = '100'
+const UNPAGINATED = '100'
 
 const idsIn = ({ users }: UserListResponse): number[] => users.map((user) => user.id)
 
@@ -55,7 +54,7 @@ describe('sorting the directory', () => {
   for (const sort of SORT_FIELDS) {
     for (const dir of SORT_DIRS) {
       it(`orders the whole directory by ${sort} ${dir}`, async () => {
-        const response = await server.listUsers({ sort, dir, limit: WHOLE_FIXTURE })
+        const response = await server.listUsers({ sort, dir, limit: UNPAGINATED })
 
         expect(idsIn(response)).toEqual(expectedOrder(sort, dir))
       })
@@ -97,7 +96,7 @@ describe('the id tie-breaker', () => {
   const agedThirtyFourIn = (ids: number[]) => ids.filter((id) => AGED_34.includes(id))
 
   it('follows the sort ascending, so equal ages come back in id order', async () => {
-    const ids = idsIn(await server.listUsers({ sort: 'age', dir: 'asc', limit: WHOLE_FIXTURE }))
+    const ids = idsIn(await server.listUsers({ sort: 'age', dir: 'asc', limit: UNPAGINATED }))
 
     expect(agedThirtyFourIn(ids)).toEqual(AGED_34)
   })
@@ -105,7 +104,7 @@ describe('the id tie-breaker', () => {
   /* Not `id ASC` under a descending sort, which would be equally deterministic
      and would need four more indexes to stay temp-B-tree-free. */
   it('follows the sort descending, so equal ages come back in reverse id order', async () => {
-    const ids = idsIn(await server.listUsers({ sort: 'age', dir: 'desc', limit: WHOLE_FIXTURE }))
+    const ids = idsIn(await server.listUsers({ sort: 'age', dir: 'desc', limit: UNPAGINATED }))
 
     expect(agedThirtyFourIn(ids)).toEqual(AGED_34.toReversed())
   })
@@ -123,13 +122,7 @@ describe('the id tie-breaker', () => {
    choosing sort field and sort direction" 1:1 — which is what lets a bad field
    and a bad direction be told apart. */
 describe('sort validation', () => {
-  const expectInvalidQuery = async (query: string): Promise<ApiErrorBody> => {
-    const response = await server.request.get(`/api/users?${query}`).expect(400)
-    const body = response.body as ApiErrorBody
-
-    expect(body.error.code).toBe('INVALID_QUERY')
-    return body
-  }
+  const expectInvalidQuery = (query: string) => server.expectListError(query, 'INVALID_QUERY')
 
   it('names `sort` when the field is not one of the four', async () => {
     const body = await expectInvalidQuery('sort=nickname')

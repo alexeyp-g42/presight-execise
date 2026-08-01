@@ -26,15 +26,29 @@ const MAX_LIMIT = 100
    fixed". The ceiling exists because `limit` also sizes the hobby query behind
    the page.
  *
- * Coerced because every query-string value arrives as a string: `'50'` has to
- * become 50, while `'1.5'`, `'abc'` and a repeated key (which arrives as an
- * array) all fail rather than becoming something plausible. */
-const pageLimit = z.coerce
-  .number(`limit must be a whole number between 1 and ${MAX_LIMIT}`)
-  .int(`limit must be a whole number between 1 and ${MAX_LIMIT}`)
-  .min(1, `limit must be between 1 and ${MAX_LIMIT}`)
-  .max(MAX_LIMIT, `limit must be between 1 and ${MAX_LIMIT}`)
-  .default(DEFAULT_LIMIT)
+ * Matched against `^\d+$` before it is turned into a number, rather than handed
+ * to `z.coerce.number()`. Coercion is `Number()`, which reads `0x5` as 5, `1e2`
+ * as 100 and `' 7 '` as 7 — spellings the contract never defined, quietly
+ * accepted. That is the same silent correction clamping would be, arriving by a
+ * different route, so the range check is not the only thing that has to be
+ * strict here. The digits-only form also rejects `-1` and `1.5` before the
+ * range is consulted, and a repeated key (which arrives as an array) fails at
+ * `z.string()`.
+ *
+ * Range-checked after the transform rather than before, so `limit=101` says
+ * "out of range" while `limit=0x5` says "not a whole number" — two different
+ * mistakes, told apart in the message. */
+const pageLimit = z
+  .string()
+  .regex(/^\d+$/, `limit must be a whole number between 1 and ${MAX_LIMIT}`)
+  .optional()
+  .transform((value) => (value === undefined ? DEFAULT_LIMIT : Number(value)))
+  .pipe(
+    z
+      .int()
+      .min(1, `limit must be between 1 and ${MAX_LIMIT}`)
+      .max(MAX_LIMIT, `limit must be between 1 and ${MAX_LIMIT}`),
+  )
 
 /* Left as an opaque string here and decoded in `listUsers`, which is not
    squeamishness about transforms: a bad cursor is an `INVALID_CURSOR` or a

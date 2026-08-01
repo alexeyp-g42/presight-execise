@@ -7,7 +7,6 @@ import {
   seedDirectoryFixture,
 } from '../support/directory-fixture.ts'
 import { createTestServer } from '../support/test-server.ts'
-import type { ApiErrorBody } from '../../src/http/api-error.ts'
 
 /* Through real HTTP, against the hand-authored fixture. Query-string decoding
    is exactly where filter semantics get broken silently — a handler called
@@ -263,13 +262,7 @@ describe('a selection matching nothing', () => {
    a stripped `?nationality=Turkey` returns the *unfiltered* directory, and an
    unfiltered directory that looks plausible is the worst failure available. */
 describe('strict query validation', () => {
-  const expectInvalidQuery = async (query: string) => {
-    const response = await server.request.get(`/api/users?${query}`).expect(400)
-    const body = response.body as ApiErrorBody
-
-    expect(body.error.code).toBe('INVALID_QUERY')
-    return body
-  }
+  const expectInvalidQuery = (query: string) => server.expectListError(query, 'INVALID_QUERY')
 
   it('rejects a singular near-miss of a real key', async () => {
     const body = await expectInvalidQuery('nationality=Turkey')

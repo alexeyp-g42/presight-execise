@@ -29,7 +29,7 @@ const planFor = (query: SQL): string =>
     .map((step) => step.detail)
     .join('\n')
 
-const PAGE = sql.raw('SELECT id, first_name, last_name, age, nationality FROM users')
+const SELECT_USERS = sql.raw('SELECT id, first_name, last_name, age, nationality FROM users')
 
 /* `id` tie-breaks in the sort's own direction — that is what lets one index be
    walked either way instead of needing four more. */
@@ -42,9 +42,14 @@ describe('sorting is served by an index in both directions', () => {
   for (const field of SORT_FIELDS) {
     for (const dir of SORT_DIRS) {
       it(`ORDER BY ${field} ${dir}, id ${dir} walks idx_users_${field}`, () => {
-        const plan = planFor(sql`${PAGE} ${orderedBy(field, dir)}`)
+        const plan = planFor(sql`${SELECT_USERS} ${orderedBy(field, dir)}`)
 
-        expect(plan).toContain(`USING INDEX idx_users_${field}`)
+        /* `COVERING` optional, because whether it appears is a fact about the
+           SELECT list rather than about the ordering: narrow this query to the
+           indexed columns and SQLite says `USING COVERING INDEX`, which a bare
+           `toContain('USING INDEX …')` would fail for a reason that has nothing
+           to do with the guarantee under test. */
+        expect(plan).toMatch(new RegExp(`USING (COVERING )?INDEX idx_users_${field}`))
         expect(plan).not.toMatch(/TEMP B-TREE/i)
       })
     }
@@ -74,11 +79,17 @@ const CURSOR_VALUE = {
 describe('the keyset seek is served by the same index', () => {
   for (const field of SORT_FIELDS) {
     for (const dir of SORT_DIRS) {
-      const beyond = sql.raw(dir === 'asc' ? '>' : '<')
+      /* Spelled out here rather than imported from `list-users.ts`, on purpose:
+         a seam test that asks SQLite about a shape has to state that shape
+         itself. Sharing the operator with the code under test would make the
+         two agree by construction — proving the seek is index-served, but not
+         that it is the seek the endpoint actually issues. The behavioural
+         tests in `test/users/list-cursor.test.ts` settle that half. */
+      const operator = dir === 'asc' ? '>' : '<'
 
-      it(`(${field}, id) ${dir === 'asc' ? '>' : '<'} (?, ?) seeks idx_users_${field}`, () => {
-        const after = sql`WHERE (${sql.raw(field)}, id) ${beyond} (${CURSOR_VALUE[field]}, ${30})`
-        const plan = planFor(sql`${PAGE} ${after} ${orderedBy(field, dir)}`)
+      it(`(${field}, id) ${operator} (?, ?) seeks idx_users_${field}`, () => {
+        const after = sql`WHERE (${sql.raw(field)}, id) ${sql.raw(operator)} (${CURSOR_VALUE[field]}, ${30})`
+        const plan = planFor(sql`${SELECT_USERS} ${after} ${orderedBy(field, dir)}`)
 
         expect(plan).toContain('SEARCH users USING')
         expect(plan).toContain(`INDEX idx_users_${field}`)

@@ -1,4 +1,4 @@
-import type { SortField, User, UserListResponse } from '@presight/shared'
+import type { SortDir, SortField, User, UserListResponse } from '@presight/shared'
 import { and, asc, desc, inArray, type SQL, sql } from 'drizzle-orm'
 import type { AnySQLiteColumn } from 'drizzle-orm/sqlite-core'
 import { avatarPath } from '../avatars/avatar-path.ts'
@@ -20,8 +20,18 @@ const SORT_COLUMNS = {
   nationality: users.nationality,
 } satisfies Record<SortField, AnySQLiteColumn>
 
-/** What the page query selects: every sort field, plus the tie-breaker. */
-type SortedRow = { [Field in SortField]: string | number } & { id: number }
+/** A row carrying every sort field, so `row[sort]` is always a value. */
+type SortableRow = { [Field in SortField]: string | number } & { id: number }
+
+/* What a direction *means*, stated once and keyed by `SortDir`. The ordering
+   and the seek are the same fact read twice — "descending walks the index
+   backwards" and "descending seeks with `<`" — and holding one of them while
+   flipping the other is precisely the bug that hands a caller a page they have
+   already seen. Stated apart, nothing in the type system would object. */
+const DIRECTION = {
+  asc: { order: asc, beyond: sql.raw('>') },
+  desc: { order: desc, beyond: sql.raw('<') },
+} satisfies Record<SortDir, { order: typeof asc; beyond: SQL }>
 
 export const listUsers = (db: Db, params: ListUsersParams): UserListResponse => {
   const { sort, dir, limit, cursor } = params
@@ -30,7 +40,7 @@ export const listUsers = (db: Db, params: ListUsersParams): UserListResponse => 
      one lets a single `(sort_field, id)` index be walked in either direction,
      which is what keeps all 8 permutations free of a temp B-tree and lets
      `LIMIT` stop early instead of ordering the whole filtered set. */
-  const direction = dir === 'asc' ? asc : desc
+  const { order } = DIRECTION[dir]
 
   const rows = db
     .select({
@@ -42,7 +52,7 @@ export const listUsers = (db: Db, params: ListUsersParams): UserListResponse => 
     })
     .from(users)
     .where(and(buildUserFilter(params), afterCursor(cursor, { sort, dir })))
-    .orderBy(direction(SORT_COLUMNS[sort]), direction(users.id))
+    .orderBy(order(SORT_COLUMNS[sort]), order(users.id))
     /* One row more than the page: the extra row is what answers `has_more`, and
        it is discarded rather than returned. A second `COUNT` over the same
        predicate would be twice the work to settle a yes/no question. */
@@ -70,7 +80,10 @@ export const listUsers = (db: Db, params: ListUsersParams): UserListResponse => 
 /* The next page starts after the last row of this one — which exists exactly
    when the extra row came back, since a row beyond the page can only follow a
    full page. `null` is therefore both "no more rows" and "no cursor". */
-const mintNextCursor = (rows: SortedRow[], { sort, dir, limit }: ListUsersParams): string | null => {
+const mintNextCursor = (
+  rows: SortableRow[],
+  { sort, dir, limit }: ListUsersParams,
+): string | null => {
   const last = rows.length > limit ? rows[limit - 1] : undefined
 
   return last === undefined ? null : encodeCursor({ sort, dir, value: last[sort], id: last.id })
@@ -81,9 +94,10 @@ const mintNextCursor = (rows: SortedRow[], { sort, dir, limit }: ListUsersParams
    the row-value form into a seek on `idx_users_<sort>` and walks forward from
    there, while the expanded form leaves it scanning.
  *
- * The comparator follows the sort's direction for the same reason the tie-break
- * does — the pair is compared left to right, so `<` under a descending sort
- * lands on exactly the rows the ordering puts after the cursor.
+ * The pair is compared left to right, so `beyond` — `<` under a descending
+ * sort — lands on exactly the rows the ordering puts after the cursor, which is
+ * why it comes off `DIRECTION` beside the `ORDER BY` rather than being decided
+ * again here.
  *
  * Read off the cursor rather than off the request, because `decodeCursor` has
  * already refused any cursor whose pair differs from the request's: these are
@@ -92,7 +106,7 @@ const afterCursor = (token: string | undefined, active: ActiveSort): SQL | undef
   if (token === undefined) return undefined
 
   const cursor = decodeCursor(token, active)
-  const beyond = sql.raw(cursor.dir === 'asc' ? '>' : '<')
+  const { beyond } = DIRECTION[cursor.dir]
 
   return sql`(${SORT_COLUMNS[cursor.sort]}, ${users.id}) ${beyond} (${cursor.value}, ${cursor.id})`
 }

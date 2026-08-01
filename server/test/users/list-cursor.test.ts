@@ -1,7 +1,6 @@
 import { Buffer } from 'node:buffer'
 import type { UserListResponse } from '@presight/shared'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { ApiErrorBody, ErrorCode } from '../../src/http/api-error.ts'
 import { seedDirectoryFixture } from '../support/directory-fixture.ts'
 import { createTestServer, type QueryParams } from '../support/test-server.ts'
 
@@ -13,7 +12,7 @@ const server = createTestServer({ seed: seedDirectoryFixture })
 
 const FIXTURE_SIZE = 60
 const PAGE_SIZE = '7'
-const WHOLE_FIXTURE = '100'
+const UNPAGINATED = '100'
 
 const idsIn = ({ users }: UserListResponse): number[] => users.map((user) => user.id)
 
@@ -22,14 +21,6 @@ const base64url = (payload: unknown): string =>
 
 const decode = (cursor: string): unknown =>
   JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'))
-
-const expectError = async (query: string, code: ErrorCode): Promise<ApiErrorBody> => {
-  const response = await server.request.get(`/api/users?${query}`).expect(400)
-  const body = response.body as ApiErrorBody
-
-  expect(body.error.code).toBe(code)
-  return body
-}
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -47,7 +38,12 @@ describe('the limit', () => {
   })
 
   /* Clamping is a silent correction the client cannot observe, and it splits
-     the rule into "some invalid input errors, some is quietly fixed". */
+     the rule into "some invalid input errors, some is quietly fixed".
+   *
+   * The last three are the same silent correction wearing a different hat:
+   * `Number()` — which is all `z.coerce.number()` is — reads every one of them
+   * as a number the contract never said was a limit. A validator that only
+   * range-checks lets them through and answers 200. */
   it.each([
     ['zero', 'limit=0'],
     ['negative', 'limit=-1'],
@@ -56,10 +52,24 @@ describe('the limit', () => {
     ['not a number', 'limit=abc'],
     ['empty', 'limit='],
     ['repeated', 'limit=5&limit=9'],
+    ['hexadecimal', 'limit=0x5'],
+    ['exponential', 'limit=1e2'],
+    ['space-padded', 'limit=%207%20'],
   ])('400s on a %s limit rather than clamping it', async (_case, query) => {
-    const body = await expectError(query, 'INVALID_QUERY')
+    const body = await server.expectListError(query, 'INVALID_QUERY')
 
     expect(body.error.details).toEqual([{ field: 'limit', message: expect.any(String) }])
+  })
+
+  /* Out of range and not-a-number are different mistakes, and the message says
+     which — the range is only consulted once the spelling is a whole number. */
+  it('tells an out-of-range limit apart from an unreadable one', async () => {
+    const outOfRange = await server.expectListError('limit=101', 'INVALID_QUERY')
+    const unreadable = await server.expectListError('limit=0x5', 'INVALID_QUERY')
+
+    expect(outOfRange.error.details?.[0]?.message).not.toBe(
+      unreadable.error.details?.[0]?.message,
+    )
   })
 })
 
@@ -72,7 +82,7 @@ describe('page_info', () => {
   })
 
   it('reports nothing more, with a null cursor, when the page holds everything', async () => {
-    const response = await server.listUsers({ limit: WHOLE_FIXTURE })
+    const response = await server.listUsers({ limit: UNPAGINATED })
 
     expect(response.users).toHaveLength(FIXTURE_SIZE)
     expect(response.page_info).toEqual({ has_more: false, next_cursor: null })
@@ -109,7 +119,7 @@ describe('the cursor', () => {
       limit: PAGE_SIZE,
       cursor: first.page_info.next_cursor ?? '',
     })
-    const whole = idsIn(await server.listUsers({ sort: 'age', limit: WHOLE_FIXTURE }))
+    const whole = idsIn(await server.listUsers({ sort: 'age', limit: UNPAGINATED }))
 
     expect(idsIn(second)).toEqual(whole.slice(7, 14))
   })
@@ -143,7 +153,7 @@ describe('a cursor replayed under a different sort', () => {
   it('is a CURSOR_SORT_MISMATCH when the field changed', async () => {
     const cursor = await cursorMintedUnder({ sort: 'age', dir: 'asc' })
 
-    await expectError(
+    await server.expectListError(
       `sort=last_name&dir=asc&cursor=${encodeURIComponent(cursor)}`,
       'CURSOR_SORT_MISMATCH',
     )
@@ -152,7 +162,7 @@ describe('a cursor replayed under a different sort', () => {
   it('is a CURSOR_SORT_MISMATCH when only the direction changed', async () => {
     const cursor = await cursorMintedUnder({ sort: 'age', dir: 'asc' })
 
-    await expectError(
+    await server.expectListError(
       `sort=age&dir=desc&cursor=${encodeURIComponent(cursor)}`,
       'CURSOR_SORT_MISMATCH',
     )
@@ -191,7 +201,7 @@ describe('a malformed cursor', () => {
     ['carries a value of the wrong type for its sort field', base64url({ ...VALID_PAYLOAD, value: 42 })],
     ['carries an id that is not a whole number', base64url({ ...VALID_PAYLOAD, id: 1.5 })],
   ])('is a 400 INVALID_CURSOR when it %s', async (_case, cursor) => {
-    await expectError(`cursor=${encodeURIComponent(cursor)}`, 'INVALID_CURSOR')
+    await server.expectListError(`cursor=${encodeURIComponent(cursor)}`, 'INVALID_CURSOR')
   })
 })
 
@@ -222,7 +232,7 @@ describe('walking the cursor to exhaustion', () => {
     ['a sort with no ties at all', { sort: 'last_name', dir: 'desc' }],
   ])('yields the unpaginated result exactly once, in order: %s', async (_case, sortParams) => {
     const { ids, pages } = await walk({ ...sortParams, limit: PAGE_SIZE })
-    const unpaginated = idsIn(await server.listUsers({ ...sortParams, limit: WHOLE_FIXTURE }))
+    const unpaginated = idsIn(await server.listUsers({ ...sortParams, limit: UNPAGINATED }))
 
     /* 60 rows at 7 a page: eight full pages and a short ninth. */
     expect(pages).toBe(9)
@@ -234,7 +244,7 @@ describe('walking the cursor to exhaustion', () => {
     const filters = { nationalities: ['Germany', 'Turkey'], sort: 'first_name', dir: 'desc' }
     const { ids } = await walk({ ...filters, limit: '3' })
 
-    expect(ids).toEqual(idsIn(await server.listUsers({ ...filters, limit: WHOLE_FIXTURE })))
+    expect(ids).toEqual(idsIn(await server.listUsers({ ...filters, limit: UNPAGINATED })))
     expect(ids).toHaveLength(11)
   })
 })
