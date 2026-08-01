@@ -20,9 +20,9 @@ import type { ApiErrorBody } from '../../src/http/api-error.ts'
 const server = createTestServer({ seed: seedDirectoryFixture })
 
 /* Sorted numerically rather than left in response order, deliberately: this
-   ticket owns *which* people come back, #20 owns the order they come back in.
-   Asserting the set keeps every expectation below from having to be rewritten
-   the day `sort` and `dir` become parameters. */
+   file owns *which* people come back, `list-sort.test.ts` owns the order they
+   come back in. Asserting the set is what kept every expectation below from
+   needing a rewrite once `sort` and `dir` became parameters. */
 const idsOf = ({ users }: UserListResponse): number[] =>
   users.map((user) => user.id).sort((left, right) => left - right)
 
@@ -70,14 +70,14 @@ describe('GET /api/users', () => {
     expect(response.users).toEqual([expect.objectContaining({ id: 5, hobbies: [] })])
   })
 
-  /* Sort, cursor and limit land in #20. Until they do the endpoint answers one
-     fixed page, and `has_more` still has to tell the truth about the 60-row
-     fixture behind it. */
-  it('answers a fixed first page and reports that more remain', async () => {
+  /* The default page over the 60-row fixture. `list-cursor.test.ts` owns what
+     happens next; here it is enough that a page of distinct people comes back
+     and that `has_more` tells the truth about the rest. */
+  it('answers a default first page and reports that more remain', async () => {
     const response = await server.listUsers()
 
     expect(response.users).toHaveLength(50)
-    expect(response.page_info).toEqual({ has_more: true, next_cursor: null })
+    expect(response.page_info).toEqual({ has_more: true, next_cursor: expect.any(String) })
     expect(new Set(idsOf(response)).size).toBe(50)
   })
 })
@@ -278,9 +278,7 @@ describe('strict query validation', () => {
   })
 
   it('rejects a key that belongs to a later ticket', async () => {
-    await expectInvalidQuery('sort=age')
-    await expectInvalidQuery('limit=10')
-    await expectInvalidQuery('cursor=abc')
+    await expectInvalidQuery('facets=hobbies')
   })
 
   it('rejects a camelCase spelling of a real key', async () => {

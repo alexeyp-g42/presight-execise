@@ -1,21 +1,18 @@
-import { DEFAULT_SORT, type SortField, type User, type UserListResponse } from '@presight/shared'
-import { asc, inArray } from 'drizzle-orm'
+import type { SortField, User, UserListResponse } from '@presight/shared'
+import { and, asc, desc, inArray, type SQL, sql } from 'drizzle-orm'
 import type { AnySQLiteColumn } from 'drizzle-orm/sqlite-core'
 import { avatarPath } from '../avatars/avatar-path.ts'
 import type { Db } from '../db/open-db.ts'
 import { user_hobbies, users } from '../db/schema.ts'
 import { buildUserFilter } from './build-user-filter.ts'
-import type { UserFilterParams } from './user-filter-params.ts'
-
-/* The contract's default, applied here until #20 parameterises `sort`, `dir`,
-   `limit` and `cursor`. Fetching one more row than the page is how `has_more`
-   is answered without a second `COUNT` — the extra row is discarded. */
-const PAGE_SIZE = 50
+import { type ActiveSort, decodeCursor, encodeCursor } from './cursor.ts'
+import type { ListUsersParams } from './list-users-params.ts'
 
 /* Keyed by `SortField` from the contract package, so the four sort fields are
    stated once and this map cannot drift from them: adding a fifth field to
    `@presight/shared` is a compile error here until it has a column, which is
-   also the moment it needs an index (#20's query-plan seam catches that half). */
+   also the moment it needs an index (`test/db/sort-indexes.test.ts` catches
+   that half). */
 const SORT_COLUMNS = {
   first_name: users.first_name,
   last_name: users.last_name,
@@ -23,7 +20,18 @@ const SORT_COLUMNS = {
   nationality: users.nationality,
 } satisfies Record<SortField, AnySQLiteColumn>
 
-export const listUsers = (db: Db, params: UserFilterParams): UserListResponse => {
+/** What the page query selects: every sort field, plus the tie-breaker. */
+type SortedRow = { [Field in SortField]: string | number } & { id: number }
+
+export const listUsers = (db: Db, params: ListUsersParams): UserListResponse => {
+  const { sort, dir, limit, cursor } = params
+  /* Applied to the tie-breaker as well as to the sort field — `last_name DESC,
+     id DESC`, never `last_name DESC, id ASC`. Both are deterministic; only this
+     one lets a single `(sort_field, id)` index be walked in either direction,
+     which is what keeps all 8 permutations free of a temp B-tree and lets
+     `LIMIT` stop early instead of ordering the whole filtered set. */
+  const direction = dir === 'asc' ? asc : desc
+
   const rows = db
     .select({
       id: users.id,
@@ -33,30 +41,60 @@ export const listUsers = (db: Db, params: UserFilterParams): UserListResponse =>
       nationality: users.nationality,
     })
     .from(users)
-    .where(buildUserFilter(params))
-    /* `id` tie-breaks in the sort's own direction, which is what lets four
-       `(sort_field, id)` composites serve all 8 permutations with no temp
-       B-tree. Ascending on both until #20 makes the direction a parameter. */
-    .orderBy(asc(SORT_COLUMNS[DEFAULT_SORT]), asc(users.id))
-    .limit(PAGE_SIZE + 1)
+    .where(and(buildUserFilter(params), afterCursor(cursor, { sort, dir })))
+    .orderBy(direction(SORT_COLUMNS[sort]), direction(users.id))
+    /* One row more than the page: the extra row is what answers `has_more`, and
+       it is discarded rather than returned. A second `COUNT` over the same
+       predicate would be twice the work to settle a yes/no question. */
+    .limit(limit + 1)
     .all()
 
-  const page = rows.slice(0, PAGE_SIZE)
+  const page = rows.slice(0, limit)
   const hobbies = hobbiesByUser(
     db,
     page.map((row) => row.id),
   )
 
+  /* `has_more` and `next_cursor` are one fact stated two ways, so both are read
+     off a single expression rather than computed apart and trusted to agree. */
+  const next_cursor = mintNextCursor(rows, params)
+
   return {
     users: page.map(
       (row): User => ({ ...row, avatar: avatarPath(row.id), hobbies: hobbies.get(row.id) ?? [] }),
     ),
-    page_info: {
-      has_more: rows.length > PAGE_SIZE,
-      /* Minted in #20, along with the `cursor` param that consumes it. */
-      next_cursor: null,
-    },
+    page_info: { has_more: next_cursor !== null, next_cursor },
   }
+}
+
+/* The next page starts after the last row of this one — which exists exactly
+   when the extra row came back, since a row beyond the page can only follow a
+   full page. `null` is therefore both "no more rows" and "no cursor". */
+const mintNextCursor = (rows: SortedRow[], { sort, dir, limit }: ListUsersParams): string | null => {
+  const last = rows.length > limit ? rows[limit - 1] : undefined
+
+  return last === undefined ? null : encodeCursor({ sort, dir, value: last[sort], id: last.id })
+}
+
+/* The seek. A row-value comparison — `(last_name, id) > (?, ?)` — rather than
+   the `a > ? OR (a = ? AND id > ?)` expansion it is equivalent to: SQLite turns
+   the row-value form into a seek on `idx_users_<sort>` and walks forward from
+   there, while the expanded form leaves it scanning.
+ *
+ * The comparator follows the sort's direction for the same reason the tie-break
+ * does — the pair is compared left to right, so `<` under a descending sort
+ * lands on exactly the rows the ordering puts after the cursor.
+ *
+ * Read off the cursor rather than off the request, because `decodeCursor` has
+ * already refused any cursor whose pair differs from the request's: these are
+ * the request's sort and direction, proven rather than assumed. */
+const afterCursor = (token: string | undefined, active: ActiveSort): SQL | undefined => {
+  if (token === undefined) return undefined
+
+  const cursor = decodeCursor(token, active)
+  const beyond = sql.raw(cursor.dir === 'asc' ? '>' : '<')
+
+  return sql`(${SORT_COLUMNS[cursor.sort]}, ${users.id}) ${beyond} (${cursor.value}, ${cursor.id})`
 }
 
 /* One statement for the whole page rather than a query per card, and a separate
