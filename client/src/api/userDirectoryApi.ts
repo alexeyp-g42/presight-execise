@@ -47,8 +47,10 @@ export type UserListRequest = UserFilter & {
   cursor?: string | null;
 };
 
-/** How many users one request asks for — the client's choice, inside the API's 1–100. */
-export const USER_PAGE_SIZE = 50;
+/* The limit the client sends, which is its own choice inside the API's 1–100 —
+   named for the param rather than for a page, because there is no page number
+   anywhere in the system. */
+export const USER_LIST_LIMIT = 50;
 
 /* Repeated keys rather than comma-joined values, because nationality display
    names contain commas ("Korea, Republic of") and hobbies are free text — a

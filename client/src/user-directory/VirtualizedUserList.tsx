@@ -52,7 +52,6 @@ export const VirtualizedUserList = ({
           /* Past the last user is the `+1` row: the skeleton, in the list
              rather than bolted below it. */
           const isSkeletonRow = virtualRow.index >= users.length;
-          const user = users[virtualRow.index];
 
           return (
             <div
@@ -69,7 +68,11 @@ export const VirtualizedUserList = ({
               }}
               className="absolute top-0 left-0 w-full pb-2"
             >
-              {isSkeletonRow || !user ? <UserCardSkeleton /> : <UserDirectoryCard user={user} />}
+              {isSkeletonRow ? (
+                <UserCardSkeleton />
+              ) : (
+                <UserDirectoryCard user={users[virtualRow.index]} />
+              )}
             </div>
           );
         })}

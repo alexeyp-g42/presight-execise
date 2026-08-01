@@ -1,7 +1,7 @@
 import type { SortDir, SortField, User } from "@presight/shared";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { fetchUserPage, USER_PAGE_SIZE, type UserFilter } from "../api/userDirectoryApi";
+import { fetchUserPage, USER_LIST_LIMIT, type UserFilter } from "../api/userDirectoryApi";
 
 /* The directory's server state, and the reason there is no request-id guard
    anywhere in this client. A stale response cannot overwrite a fresh one
@@ -23,20 +23,17 @@ export const userDirectoryQueryKey = (view: UserDirectoryView) => ["users", view
 export type UserDirectoryQueryResult = {
   /** Every page fetched so far, flattened — what the virtualizer indexes into. */
   users: User[];
-  status: "pending" | "error" | "success";
-  error: Error | null;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
 };
 
 export const useUserDirectoryQuery = (view: UserDirectoryView): UserDirectoryQueryResult => {
-  const { data, status, error, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteQuery({
+  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteQuery({
     queryKey: userDirectoryQueryKey(view),
     queryFn: ({ pageParam, signal }) =>
-      fetchUserPage({ ...view, limit: USER_PAGE_SIZE, cursor: pageParam }, signal),
-    /* The first page asks for no cursor at all — an empty `?cursor=` is a
-       malformed cursor to the API, not an absent one. */
+      fetchUserPage({ ...view, limit: USER_LIST_LIMIT, cursor: pageParam }, signal),
+    /* `null` rather than an empty string — see the cursor note in the API module. */
     initialPageParam: null as string | null,
     /* `null` on the last page, which is exactly what the library reads as "no
        more pages" — so `has_more` never has to be consulted separately. */
@@ -47,5 +44,8 @@ export const useUserDirectoryQuery = (view: UserDirectoryView): UserDirectoryQue
      effects on every scroll frame. */
   const users = useMemo(() => data?.pages.flatMap((page) => page.users) ?? [], [data]);
 
-  return { users, status, error, hasNextPage, isFetchingNextPage, fetchNextPage };
+  /* Deliberately nothing about failure yet: the first-page error state and the
+     inline "couldn't load more" on the skeleton row are #27, and a `status` no
+     caller reads would just be somewhere for that decision to hide. */
+  return { users, hasNextPage, isFetchingNextPage, fetchNextPage };
 };

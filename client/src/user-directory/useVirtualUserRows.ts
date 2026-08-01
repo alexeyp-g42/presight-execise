@@ -61,7 +61,6 @@ export const useVirtualUserRows = ({
   scrollElementRef,
   rowHeight,
 }: VirtualUserRowsInput): {
-  rowCount: number;
   virtualRows: VirtualItem[];
   totalSize: number;
 } => {
@@ -99,5 +98,5 @@ export const useVirtualUserRows = ({
     }
   }, [fetchNextPage, hasNextPage, isFetchingNextPage, lastItemIndex, rowCount]);
 
-  return { rowCount, virtualRows, totalSize: virtualizer.getTotalSize() };
+  return { virtualRows, totalSize: virtualizer.getTotalSize() };
 };

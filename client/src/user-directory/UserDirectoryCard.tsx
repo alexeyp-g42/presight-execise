@@ -1,4 +1,5 @@
 import type { User } from "@presight/shared";
+import { USER_CARD_AVATAR, USER_CARD_SURFACE } from "./userCardSurface";
 
 /* One person, at a height that never varies. The card takes the *full* hobby
    array and slices it itself — a component handed everything and showing two is
@@ -25,7 +26,7 @@ export const UserDirectoryCard = ({ user }: UserDirectoryCardProps) => {
   const remainingHobbiesLabel = `More hobbies: ${remainingHobbies.join(", ")}`;
 
   return (
-    <article className="flex h-full items-center gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white px-3 sm:gap-4 sm:px-4">
+    <article className={USER_CARD_SURFACE}>
       <img
         src={user.avatar}
         /* Empty on purpose: the name sits beside it, and an avatar that repeats
@@ -33,7 +34,7 @@ export const UserDirectoryCard = ({ user }: UserDirectoryCardProps) => {
         alt=""
         width={AVATAR_SIZE}
         height={AVATAR_SIZE}
-        className="size-12 shrink-0 rounded-full bg-slate-100 sm:size-14"
+        className={`${USER_CARD_AVATAR} bg-slate-100`}
       />
 
       {/* `min-w-0` is what lets the children below truncate at all — a flex item
