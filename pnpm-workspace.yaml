@@ -24,3 +24,6 @@ allowBuilds:
   # reaches the runtime image — but the build has to be allowed or CI's
   # `--frozen-lockfile` install fails outright rather than skipping it.
   esbuild: true
+
+minimumReleaseAgeExclude:
+  - nuqs@2.9.4
