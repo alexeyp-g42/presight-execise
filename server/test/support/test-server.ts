@@ -19,6 +19,12 @@ import { createMigratedDatabase, type MigratedDatabase } from './temp-database.t
 export type TestServerOptions = {
   /** Runs after the migrations, against the same handle the app is given. */
   seed?: (db: Db) => void
+  /**
+   * The built client to serve. Left out, the app resolves `server/public`,
+   * which exists only inside the image — so every other test file gets an
+   * API-only app, which is what the dev loop runs too.
+   */
+  clientDir?: string
 }
 
 /** One value or several under the same key — never a comma-joined string. */
@@ -47,7 +53,7 @@ export type TestServer = {
   listUsers: (params?: QueryParams) => Promise<UserListResponse>
 }
 
-export const createTestServer = ({ seed }: TestServerOptions = {}): TestServer => {
+export const createTestServer = ({ seed, clientDir }: TestServerOptions = {}): TestServer => {
   let database: MigratedDatabase | undefined
   let app: Express | undefined
   let request: supertest.Agent | undefined
@@ -55,7 +61,7 @@ export const createTestServer = ({ seed }: TestServerOptions = {}): TestServer =
   beforeAll(() => {
     database = createMigratedDatabase()
     seed?.(database.db)
-    app = createApp(database.db)
+    app = createApp(database.db, { clientDir })
     request = supertest(app)
   })
 

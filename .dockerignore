@@ -1,0 +1,30 @@
+# Two of these are load-bearing rather than housekeeping, and both fail
+# quietly: `**/dist` stops a stale host build being copied over the fresh one
+# the build stage just made, and `*.sqlite` stops a locally-seeded database
+# being baked into the image — which would defeat the entire named-volume
+# design while looking like it worked.
+
+.git
+.github
+
+node_modules
+**/node_modules
+
+**/dist
+**/build
+**/coverage
+
+*.sqlite
+*.sqlite-*
+data
+
+.env
+.env.*
+!.env.example
+
+**/*.md
+docs
+
+.DS_Store
+.vscode
+.idea

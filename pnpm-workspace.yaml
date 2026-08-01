@@ -8,7 +8,18 @@ packages:
 # install. This must be the map form — the pre-11 list form is ignored, and the
 # install fails with ERR_PNPM_IGNORED_BUILDS.
 allowBuilds:
-  better-sqlite3: true
+  # False, and listed rather than omitted: `strictDepBuilds` fails an install
+  # over an *unlisted* build, so this is the explicit decision not to run one.
+  #
+  # better-sqlite3 13 ships a prebuilt binary per platform inside the package
+  # and `lib/binding.js` prefers it over anything node-gyp leaves in
+  # `build/Release`, so compiling is pure cost. It is not free cost: the package
+  # carries a `binding.gyp` and no `install` script, which is exactly the shape
+  # that makes pnpm run an implicit `node-gyp rebuild` — and that needs
+  # `python3 make g++`, which `node:24-slim` does not ship. Left true, the
+  # Docker build fails at the install layer unless a toolchain stage is added
+  # to compile a binary the loader then ignores.
+  better-sqlite3: false
   # drizzle-kit's bundler. Dev-only — it generates the migration SQL and never
   # reaches the runtime image — but the build has to be allowed or CI's
   # `--frozen-lockfile` install fails outright rather than skipping it.

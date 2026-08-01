@@ -1,0 +1,42 @@
+# One service, one port, one thing to type. `docker compose up --build` builds,
+# seeds and serves the whole application on :3000 — API under /api and the SPA
+# from the same origin, so there is no CORS, no API URL and no second service.
+#
+# No `version:` key — obsolete in Compose v2 and it only emits a warning.
+name: presight
+
+services:
+  app:
+    build:
+      context: .
+      target: runtime
+    # Tagged so CI can prebuild this exact name with buildx and have `up` reuse
+    # it rather than build a second time — compose only builds when the image
+    # is absent.
+    image: presight-app:latest
+    # A real init as PID 1 to reap what the seed leaves behind. The entrypoint
+    # `exec`s node, so signals still reach it directly.
+    init: true
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_PATH: /data/presight.sqlite
+      # auto  — seed only when the database file is missing (the default)
+      # force — drop the database and reseed on every boot
+      # never — never seed
+      # Anything else is a failed boot rather than a silent fallback to auto.
+      SEED_ON_BOOT: auto
+    volumes:
+      # The directory, not the file: WAL puts `-wal` and `-shm` sidecars beside
+      # the database, and a file-level mount would leave them in the
+      # container's writable layer to vanish on the next recreate.
+      - db-data:/data
+    # No `healthcheck:` block on purpose — it is declared once, in the image,
+    # so `docker run` gets it too and `compose up --wait` honours it either
+    # way. One source of truth, nothing to drift.
+
+volumes:
+  db-data:

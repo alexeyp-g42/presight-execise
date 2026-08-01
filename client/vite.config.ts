@@ -5,6 +5,16 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  /* The dev-loop half of "one image, one origin". In the image the Node server
+     serves this build from its own port, so the client's API base is the
+     literal string `/api` with no CORS and nothing to configure. `vite dev`
+     is the one place that is not true, and this proxy is what makes it true
+     there too — so no code anywhere branches on the environment. */
+  server: {
+    proxy: {
+      "/api": "http://localhost:3000",
+    },
+  },
   test: {
     name: "client",
     /* jsdom, not happy-dom: happy-dom is faster but weaker on compatibility,
