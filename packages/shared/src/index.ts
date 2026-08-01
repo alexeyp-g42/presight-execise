@@ -55,3 +55,25 @@ export type UserListResponse = {
   users: User[]
   page_info: PageInfo
 }
+
+/** One row the sidebar offers: a value and how many of the result set it covers. */
+export type FacetEntry = {
+  value: string
+  count: number
+}
+
+/* Its own response rather than a field on `UserListResponse`, which is the
+   contract half of the endpoint split: nothing in here varies by page or by
+   sort, and a shape that carried it alongside `page_info` would say otherwise.
+
+   Both arrays are `20 + k` long — top 20 by `count DESC, value ASC`, plus the
+   selected values that missed the cut, at their true count. The client renders
+   them straight through, `count: 0` included, and never reconciles them against
+   its own selection state. */
+export type FacetsResponse = {
+  total: number
+  /** Counted with the hobby selection **kept** — selecting more narrows. */
+  hobbies: FacetEntry[]
+  /** Counted with the nationality selection **dropped** — selecting more widens. */
+  nationalities: FacetEntry[]
+}
