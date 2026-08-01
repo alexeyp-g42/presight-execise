@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NuqsAdapter } from "nuqs/adapters/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { UserDirectoryPage } from "./user-directory/UserDirectoryPage";
@@ -19,10 +20,17 @@ const queryClient = new QueryClient({
   },
 });
 
+/* The plain React adapter, not a framework one: this app has zero routes, so
+   nuqs reads and writes `window.location` directly — no router, and no
+   `useSearchParams` to import one for. It is a provider rather than nothing at
+   all because the hooks share one subscription to the address bar, which is
+   what keeps two components reading the same key from ever disagreeing. */
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <UserDirectoryPage />
-    </QueryClientProvider>
+    <NuqsAdapter>
+      <QueryClientProvider client={queryClient}>
+        <UserDirectoryPage />
+      </QueryClientProvider>
+    </NuqsAdapter>
   </StrictMode>,
 );

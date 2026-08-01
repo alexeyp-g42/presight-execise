@@ -96,6 +96,24 @@ How many users one request may return: an integer 1–100, defaulting to 50. Out
 
 Unlike `sort` and `dir`, it lives in the server rather than in the contract package, and for the reason those two live there: a default belongs to the contract when the *client* has to apply it unprompted — which it does for a hand-edited `?sort=nickname`, and never does for `limit`, since `limit` no more round-trips through the shared URL than the cursor does. What the client sends it chooses; what the server accepts it validates. Should the client ever need to know the ceiling to pick a page size, that is the moment to publish it, not before.
 
+### Shared URL
+
+The client's whole view state, in the query string: search text, sort field, sort direction, and — once the sidebar lands — the selections. Written **in exactly the shape the API accepts** (`q`, `sort`, `dir`, repeated `hobbies` / `nationalities` keys), so there is no translation layer between the address bar and the request, and pasting the URL to a colleague hands them the view rather than a description of it.
+
+Held by nuqs, running **router-free**: the app has zero routes, so the adapter reads and writes `window.location` directly. `sort` and `dir` are parsed against the contract package's arrays **at the client boundary**, so a hand-edited `?sort=nickname` falls back to `DEFAULT_SORT` client-side and never reaches the API.
+
+What is *not* in it is as deliberate: the cursor and the limit never round-trip, so a reload always restarts from the first page.
+
+Say *shared URL* rather than "route" or "deep link" — there is no router and no route to link into.
+
+### Search draft
+
+The search box's local, ephemeral copy of what the viewer is typing, ahead of the **search text** — which is the URL's value and the only thing the list is keyed on.
+
+The distinction is the point. The draft paints on the keystroke, so the input never feels sticky; the search text changes 300ms later, when the client's **one timer** writes the URL. One timer, at that boundary, debounces the address bar and the fetch together — which is what makes *the URL always describes what is on screen* an invariant rather than a hope. A second timer anywhere in the client is a regression, not an optimisation.
+
+The draft flows from the search text on mount and when the URL moves on its own (the back button, a pasted link); it never flows the other way except through that timer — trimmed on the way, because the API module drops blank `q` and a URL reading `?q=+++` would advertise a filter no request carries.
+
 ### Contract package
 
 `@presight/shared` in `packages/shared` — the single source for the API's const arrays (`SORT_FIELDS`, `SORT_DIRS`), the defaults those arrays are read against (`DEFAULT_SORT`, `DEFAULT_DIR`), and the response types, imported by both client and server as **`.ts` source with no build step**.
