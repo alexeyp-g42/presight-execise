@@ -1,7 +1,7 @@
 import supertest from 'supertest'
 import { afterAll, beforeAll } from 'vitest'
 import type { Express } from 'express'
-import type { UserListResponse } from '@presight/shared'
+import type { FacetsResponse, UserListResponse } from '@presight/shared'
 import { createApp } from '../../src/app.ts'
 import type { Db } from '../../src/db/open-db.ts'
 import type { HealthResponse } from '../../src/routes/health.ts'
@@ -45,6 +45,8 @@ export type TestServer = {
   getHealth: () => Promise<HealthResponse>
   /** A 200 from the list endpoint. Failures are asserted through `request`. */
   listUsers: (params?: QueryParams) => Promise<UserListResponse>
+  /** A 200 from the facets endpoint. Failures are asserted through `request`. */
+  getFacets: (params?: QueryParams) => Promise<FacetsResponse>
 }
 
 export const createTestServer = ({ seed }: TestServerOptions = {}): TestServer => {
@@ -91,6 +93,12 @@ export const createTestServer = ({ seed }: TestServerOptions = {}): TestServer =
         .get(`/api/users?${toQueryString(params)}`)
         .expect(200)
       return response.body as UserListResponse
+    },
+    getFacets: async (params = {}) => {
+      const response = await built(request, 'request')
+        .get(`/api/facets?${toQueryString(params)}`)
+        .expect(200)
+      return response.body as FacetsResponse
     },
   }
 }

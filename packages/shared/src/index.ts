@@ -55,3 +55,27 @@ export type UserListResponse = {
   users: User[]
   page_info: PageInfo
 }
+
+/** One row the sidebar offers: a value and how many of the result set it covers. */
+export type FacetEntry = {
+  value: string
+  count: number
+}
+
+/* The facets endpoint's whole answer, and deliberately not part of the list
+   response: facets are page- and sort-independent, so bundling them would
+   re-ship 40+ entries on every infinite-scroll fetch and imply they vary by
+   page. `total` rides along because it depends on exactly the filter params
+   this endpoint already takes.
+
+   Both arrays are `20 + k` long — top 20 by `count DESC, value ASC`, plus the
+   selected values that missed the cut, at their true count. The client renders
+   them straight through, `count: 0` included, and never reconciles them against
+   its own selection state. */
+export type FacetsResponse = {
+  total: number
+  /** Counted with the hobby selection **kept** — selecting more narrows. */
+  hobbies: FacetEntry[]
+  /** Counted with the nationality selection **dropped** — selecting more widens. */
+  nationalities: FacetEntry[]
+}

@@ -2,6 +2,7 @@ import express, { type Express } from 'express'
 import type { Db } from './db/open-db.ts'
 import { errorHandler, notFoundHandler } from './http/error-handler.ts'
 import { avatarHandler } from './routes/avatar.ts'
+import { createFacetsHandler } from './routes/facets.ts'
 import { healthHandler } from './routes/health.ts'
 import { createListUsersHandler } from './routes/users.ts'
 
@@ -31,6 +32,10 @@ export const createApp = (db: Db): Express => {
 
   app.get('/api/health', healthHandler)
   app.get('/api/users', createListUsersHandler(db))
+  /* Two endpoints over the same predicate, split on cache key: the list takes
+     the filters plus sort/dir/limit/cursor, this one takes the filters alone
+     and rejects the other four. */
+  app.get('/api/facets', createFacetsHandler(db))
   /* The `.svg` is part of the path, not a format negotiation: the list endpoint
      mints `/api/avatars/<id>.svg` as a plain URL for an `<img>` tag, and an
      extension is what makes it read as one. */
