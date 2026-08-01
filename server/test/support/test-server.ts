@@ -1,9 +1,10 @@
 import supertest from 'supertest'
-import { afterAll, beforeAll } from 'vitest'
+import { afterAll, beforeAll, expect } from 'vitest'
 import type { Express } from 'express'
 import type { FacetsResponse, UserListResponse } from '@presight/shared'
 import { createApp } from '../../src/app.ts'
 import type { Db } from '../../src/db/open-db.ts'
+import { ERROR_STATUS, type ApiErrorBody, type ErrorCode } from '../../src/http/api-error.ts'
 import type { HealthResponse } from '../../src/routes/health.ts'
 import { createMigratedDatabase, type MigratedDatabase } from './temp-database.ts'
 
@@ -49,10 +50,18 @@ export type TestServer = {
   readonly request: supertest.Agent
   /** Typed request helpers. Test bodies read as data in, data out. */
   getHealth: () => Promise<HealthResponse>
-  /** A 200 from the list endpoint. */
+  /** A 200 from the list endpoint. Failures go through `expectListError`. */
   listUsers: (params?: QueryParams) => Promise<UserListResponse>
   /** A 200 from the facets endpoint. */
   getFacets: (params?: QueryParams) => Promise<FacetsResponse>
+  /**
+   * A 4xx from the list endpoint, asserted by its code and handed back for the
+   * caller to say more about. Takes a raw query string rather than
+   * `QueryParams`, because most of what has to fail — bracket syntax, a
+   * repeated `q`, a hand-edited cursor — is a shape `toQueryString` would never
+   * build.
+   */
+  expectListError: (query: string, code: ErrorCode) => Promise<ApiErrorBody>
 }
 
 export const createTestServer = ({ seed, clientDir }: TestServerOptions = {}): TestServer => {
@@ -81,8 +90,8 @@ export const createTestServer = ({ seed, clientDir }: TestServerOptions = {}): T
   }
 
   /* The 200 path for a filtered endpoint, so a test body reads as params in,
-     response out. Failures are asserted through `request`, where the status and
-     the envelope are the point. */
+     response out. Failures go through `expectListError`, or through `request`
+     directly, where the status and the envelope are the point. */
   const ok = async <T>(path: string, params: QueryParams): Promise<T> => {
     const response = await built(request, 'request')
       .get(`${path}?${toQueryString(params)}`)
@@ -106,5 +115,18 @@ export const createTestServer = ({ seed, clientDir }: TestServerOptions = {}): T
     },
     listUsers: (params = {}) => ok<UserListResponse>('/api/users', params),
     getFacets: (params = {}) => ok<FacetsResponse>('/api/facets', params),
+    expectListError: async (query, code) => {
+      /* The status is looked up from the code rather than passed in, which is
+         the same argument `ERROR_STATUS` itself makes: each code means exactly
+         one status, and a caller free to pair them would eventually assert a
+         `200 NOT_FOUND` and be satisfied. */
+      const response = await built(request, 'request')
+        .get(`/api/users?${query}`)
+        .expect(ERROR_STATUS[code])
+      const body = response.body as ApiErrorBody
+
+      expect(body.error.code).toBe(code)
+      return body
+    },
   }
 }

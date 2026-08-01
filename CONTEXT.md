@@ -90,6 +90,12 @@ It carries the `sort` and `dir` it was **minted under**, so a cursor replayed ag
 
 Say *cursor*, not "page" or "offset"; there is no page number anywhere in the system.
 
+### Limit
+
+How many users one request may return: an integer 1–100, defaulting to 50. Out of range is a **400, never a clamp** — clamping is a silent correction the client cannot observe, and it would split the "invalid input is a 400" rule into "some invalid input errors, some is quietly fixed".
+
+Unlike `sort` and `dir`, it lives in the server rather than in the contract package, and for the reason those two live there: a default belongs to the contract when the *client* has to apply it unprompted — which it does for a hand-edited `?sort=nickname`, and never does for `limit`, since `limit` no more round-trips through the shared URL than the cursor does. What the client sends it chooses; what the server accepts it validates. Should the client ever need to know the ceiling to pick a page size, that is the moment to publish it, not before.
+
 ### Contract package
 
 `@presight/shared` in `packages/shared` — the single source for the API's const arrays (`SORT_FIELDS`, `SORT_DIRS`), the defaults those arrays are read against (`DEFAULT_SORT`, `DEFAULT_DIR`), and the response types, imported by both client and server as **`.ts` source with no build step**.
