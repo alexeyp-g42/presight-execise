@@ -1,8 +1,8 @@
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { migrate } from '../../src/db/migrate.ts'
-import { openDb, type Db } from '../../src/db/open-db.ts'
+import { migrate } from '../../src/shared/db/migrate.ts'
+import { openDb, type Db } from '../../src/shared/db/open-db.ts'
 
 export type TempDatabase = {
   /** Path to a database file inside a fresh directory. The file does not exist yet. */

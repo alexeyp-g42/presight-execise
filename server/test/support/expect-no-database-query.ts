@@ -1,5 +1,5 @@
 import { expect, vi } from 'vitest'
-import type { Db } from '../../src/db/open-db.ts'
+import type { Db } from '../../src/shared/db/open-db.ts'
 
 /* Asserted at the driver rather than at any layer above it, so a query added
    through Drizzle, through raw SQL, or through a module that only reaches for

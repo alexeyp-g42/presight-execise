@@ -15,12 +15,12 @@ SEED_ON_BOOT="${SEED_ON_BOOT:-auto}"
 # indistinguishable from a seeded database on the next boot.
 mkdir -p "$(dirname "$DB_PATH")"
 
-# A pinned path: `server/src/db/seed.ts` compiles to exactly this, and
-# `test/db/seed-cli.test.ts` covers the process seam it presents. Moving the
+# A pinned path: `server/src/seed.ts` compiles to exactly this, and
+# `src/seed-cli.test.ts` covers the process seam it presents. Moving the
 # source file means editing this line.
 seed() {
   echo "[entrypoint] seeding $DB_PATH"
-  node dist/db/seed.js
+  node dist/seed.js
   echo "[entrypoint] seed complete"
 }
 

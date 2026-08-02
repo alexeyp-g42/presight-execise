@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { users } from '../src/db/schema.ts'
+import { users } from '../src/shared/db/schema.ts'
 import { createTestServer } from './support/test-server.ts'
 
 /* Seam 1's own guarantees, asserted once here so every later server ticket can

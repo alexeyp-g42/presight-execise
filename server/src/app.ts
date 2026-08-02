@@ -1,11 +1,11 @@
 import express, { type Express } from 'express'
-import type { Db } from './db/open-db.ts'
-import { errorHandler, notFoundHandler } from './http/error-handler.ts'
-import { CLIENT_DIR, serveClient } from './http/serve-client.ts'
-import { avatarHandler } from './routes/avatar.ts'
-import { createFacetsHandler } from './routes/facets.ts'
-import { healthHandler } from './routes/health.ts'
-import { createListUsersHandler } from './routes/users.ts'
+import { avatarHandler } from './feature/avatar/api/avatar-handler.ts'
+import { healthHandler } from './feature/health/api/health-handler.ts'
+import { createFacetsHandler } from './feature/user/api/facets-handler.ts'
+import { createListUsersHandler } from './feature/user/api/list-users-handler.ts'
+import type { Db } from './shared/db/open-db.ts'
+import { errorHandler, notFoundHandler } from './shared/http/error-handler.ts'
+import { CLIENT_DIR, serveClient } from './shared/http/serve-client.ts'
 
 export type AppOptions = {
   /** The built client to serve. Absent on disk means API-only, which is the dev loop. */
@@ -17,7 +17,14 @@ export type AppOptions = {
    `test/support/test-server.ts`), and it keeps every path that opens a database
    in `openDb`. The bootstrap that listens is `src/index.ts` — separate, so no
    test ever binds a port. `clientDir` is the same seam one layer out: a
-   throwaway build directory, so the static half is exercised without one. */
+   throwaway build directory, so the static half is exercised without one.
+
+   It is also the composition root: the one file that imports all three features
+   — `user`, `avatar`, `health` — and the only one the boundary rules leave
+   unconstrained, because mounting every feature's routes in an order this file's
+   own comments call contract is the whole of what it is for. Route-to-handler
+   stays visible here rather than behind a router per feature, so the order can
+   be read in one pass. */
 export const createApp = (db: Db, { clientDir = CLIENT_DIR }: AppOptions = {}): Express => {
   const app = express()
 

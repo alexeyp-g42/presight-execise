@@ -1,6 +1,6 @@
 import { createApp } from './app.ts'
-import { migrate } from './db/migrate.ts'
-import { openDb } from './db/open-db.ts'
+import { migrate } from './shared/db/migrate.ts'
+import { openDb } from './shared/db/open-db.ts'
 
 /* The bootstrap, and the only file that listens on a port. Everything it wires
    together is a plain function over its dependencies, which is what lets the

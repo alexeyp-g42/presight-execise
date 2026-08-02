@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 /* The image's boot sequence, exercised the way the image runs it: a shell, an
    environment, and a command to hand over to. It lives in the server suite
    because the only thing it does before that hand-over is invoke this package's
-   seed script at a pinned compiled path — `dist/db/seed.js`, relative to the
+   seed script at a pinned compiled path — `dist/seed.js`, relative to the
    image's WORKDIR — and a stub at exactly that path is what pins it. */
 const ENTRYPOINT = join(import.meta.dirname, '..', '..', '..', 'docker', 'entrypoint.sh')
 
@@ -23,7 +23,7 @@ process.exit(1)
 `
 
 type ImageRoot = {
-  /** The WORKDIR the entrypoint runs in — `dist/db/seed.js` hangs off it. */
+  /** The WORKDIR the entrypoint runs in — `dist/seed.js` hangs off it. */
   root: string
   /** Inside a directory that does not exist yet, the way a fresh volume is. */
   dbPath: string
@@ -33,8 +33,8 @@ type ImageRoot = {
 const createImageRoot = ({ seedFails = false } = {}): ImageRoot => {
   const root = mkdtempSync(join(tmpdir(), 'presight-entrypoint-'))
 
-  mkdirSync(join(root, 'dist', 'db'), { recursive: true })
-  writeFileSync(join(root, 'dist', 'db', 'seed.js'), seedFails ? FAILING_SEED : STUB_SEED)
+  mkdirSync(join(root, 'dist'), { recursive: true })
+  writeFileSync(join(root, 'dist', 'seed.js'), seedFails ? FAILING_SEED : STUB_SEED)
 
   return {
     root,

@@ -1,6 +1,6 @@
-import type { Db } from '../../src/db/open-db.ts'
-import { user_hobbies, users } from '../../src/db/schema.ts'
-import { normalizeSearchText } from '../../src/search/normalize-search-text.ts'
+import { normalizeSearchText } from '../../src/feature/user/lib/normalize-search-text.ts'
+import type { Db } from '../../src/shared/db/open-db.ts'
+import { user_hobbies, users } from '../../src/shared/db/schema.ts'
 
 /* Sixty people, written out by hand rather than drawn from the generator, so
    the expected result of every filter in the suite is a short list of ids a

@@ -1,12 +1,18 @@
 {
-  /* The emitting config: `src` only, so tests and the vitest config never
-     reach `dist` and the runtime image. Checking happens in `tsconfig.json`,
-     which covers all three. */
+  /* The emitting config: `src` minus its tests, so nothing test-shaped reaches
+     `dist` and the runtime image. Checking happens in `tsconfig.json`, which
+     covers `src`, `test` and the two configs alike.
+
+     The exclude is load-bearing now that tests colocate beside what they cover.
+     Without it every `*.test.ts` under `src/` compiles into `dist`, and the
+     image would ship them — along with a runtime `import` of vitest and
+     supertest, which `--prod` deliberately pruned out of `node_modules`. */
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
     "rootDir": "src",
     "outDir": "dist"
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
 }

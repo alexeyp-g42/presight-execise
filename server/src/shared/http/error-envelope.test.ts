@@ -1,0 +1,111 @@
+import express, { type RequestHandler } from 'express'
+import supertest from 'supertest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { z } from 'zod'
+import { createTestServer } from '../../../test/support/test-server.ts'
+import { ApiError, type ApiErrorBody } from './api-error.ts'
+import { errorHandler, notFoundHandler } from './error-handler.ts'
+
+const server = createTestServer()
+
+/* One middleware serves every route, so the failing routes are mounted here
+   rather than waiting for endpoints that can produce each code. The wiring
+   under test is the real thing — the same two handlers `createApp` installs. */
+const appThatFailsWith = (fail: RequestHandler) => {
+  const app = express()
+  app.get('/fail', fail)
+  app.use(notFoundHandler)
+  app.use(errorHandler)
+  return supertest(app)
+}
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+describe('the error envelope', () => {
+  it('turns an unknown route into a 404, on the real app', async () => {
+    const response = await server.request.get('/api/nope').expect(404)
+
+    expect(response.body as ApiErrorBody).toEqual({
+      error: { code: 'NOT_FOUND', message: expect.stringContaining('/api/nope') },
+    })
+  })
+
+  /* Validation is a `ZodError` at the query-string boundary — the shape #19
+     onwards produces. The envelope carries a stable machine-readable code and
+     field/message pairs; Zod's own `flatten()` was rejected, since it leaks the
+     validation library's shape into the public contract. */
+  it('turns a validation failure into a 400 with per-field details', async () => {
+    const query = z.object({ sort: z.enum(['first_name', 'last_name']) })
+    const request = appThatFailsWith((req) => {
+      query.parse(req.query)
+    })
+
+    const response = await request.get('/fail?sort=birthday').expect(400)
+
+    expect(response.body as ApiErrorBody).toEqual({
+      error: {
+        code: 'INVALID_QUERY',
+        message: expect.any(String),
+        details: [{ field: 'sort', message: expect.any(String) }],
+      },
+    })
+  })
+
+  /* Express decodes path parameters while matching, so this throws a `URIError`
+     before any handler runs — there is no route that could catch it. Left
+     alone it is an `INTERNAL`, which would make a typo in a URL look like a
+     server fault. */
+  it('turns a path that cannot be decoded into a 404, not a 500', async () => {
+    const response = await server.request.get('/api/avatars/%zz.svg').expect(404)
+
+    expect(response.body as ApiErrorBody).toEqual({
+      error: { code: 'NOT_FOUND', message: expect.stringContaining('/api/avatars/%zz.svg') },
+    })
+  })
+
+  it('gives an ApiError the status its code means', async () => {
+    const request = appThatFailsWith(() => {
+      throw new ApiError('CURSOR_SORT_MISMATCH', 'This cursor was minted under a different sort')
+    })
+
+    const response = await request.get('/fail').expect(400)
+
+    expect(response.body as ApiErrorBody).toEqual({
+      error: {
+        code: 'CURSOR_SORT_MISMATCH',
+        message: 'This cursor was minted under a different sort',
+      },
+    })
+  })
+
+  it('rejects a rejected promise the same way, with no async wrapper in the route', async () => {
+    const request = appThatFailsWith(async () => {
+      await Promise.resolve()
+      throw new ApiError('INVALID_CURSOR', 'Malformed cursor')
+    })
+
+    const response = await request.get('/fail').expect(400)
+
+    expect((response.body as ApiErrorBody).error.code).toBe('INVALID_CURSOR')
+  })
+
+  it('answers an unexpected failure with a 500 that leaks no stack and no internals', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const request = appThatFailsWith(() => {
+      throw new Error('connection to the credentials service at 10.0.0.7 failed')
+    })
+
+    const response = await request.get('/fail').expect(500)
+
+    expect(response.body as ApiErrorBody).toEqual({
+      error: { code: 'INTERNAL', message: expect.any(String) },
+    })
+    expect(response.text).not.toContain('10.0.0.7')
+    expect(response.text).not.toContain('at ')
+    expect(response.text).not.toContain('error-envelope.test')
+    /* Swallowed for the client, not for the operator. */
+    expect(logged).toHaveBeenCalledOnce()
+  })
+})

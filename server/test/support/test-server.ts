@@ -3,9 +3,9 @@ import { afterAll, beforeAll, expect } from 'vitest'
 import type { Express } from 'express'
 import type { FacetsResponse, UserListResponse } from '@presight/shared'
 import { createApp } from '../../src/app.ts'
-import type { Db } from '../../src/db/open-db.ts'
-import { ERROR_STATUS, type ApiErrorBody, type ErrorCode } from '../../src/http/api-error.ts'
-import type { HealthResponse } from '../../src/routes/health.ts'
+import type { HealthResponse } from '../../src/feature/health/api/health-handler.ts'
+import type { Db } from '../../src/shared/db/open-db.ts'
+import { ERROR_STATUS, type ApiErrorBody, type ErrorCode } from '../../src/shared/http/api-error.ts'
 import { createMigratedDatabase, type MigratedDatabase } from './temp-database.ts'
 
 /* Server seam 1, used by every server test from here on: supertest over the app

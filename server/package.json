@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "typecheck": "tsc",
     "test": "vitest run",
-    "seed": "DATABASE_PATH=\"${DATABASE_PATH:-../data/presight.sqlite}\" node src/db/seed.ts",
+    "seed": "DATABASE_PATH=\"${DATABASE_PATH:-../data/presight.sqlite}\" node src/seed.ts",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
