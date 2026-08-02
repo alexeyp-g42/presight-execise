@@ -122,6 +122,14 @@ Defaults live here because they are contract, not implementation detail: the cli
 
 Deliberately carries **no runtime dependency**: the server derives `z.enum(SORT_FIELDS)` from it, so Zod never reaches the client bundle. It works under Node's native type stripping only because pnpm symlinks it to a realpath outside `node_modules` — which is why **`pnpm deploy --legacy` is prohibited** and the Docker runtime stage must copy `packages/shared` alongside `server/node_modules`.
 
+### Feature
+
+A vertical slice under `src/feature/`, owning whichever of `api/ components/ queries/ hooks/ schemas/ lib/ db/` it actually needs — and importing no sibling, per the Conventions below.
+
+Four on the client (`user`, `facet-filter`, `search`, `sort`) and three on the server (`user`, `avatar`, `health`). What earns the name is having a consumer that would notice if the slice vanished, not size: `sort` is one component, and `health` is one handler that the container's healthcheck depends on. What does *not* earn it is machinery every feature leans on — `open-db`, the error envelope, `serve-client` — which is `shared/` however much code it is.
+
+`feature/*/api/` means the fetch layer on the client and the Express handlers on the server. There are no route handlers or server actions in the Next.js sense; the reference this layout is drawn from is translated, not adopted.
+
 ## Conventions
 
 - **pnpm everywhere**, no exceptions.
@@ -130,3 +138,15 @@ Deliberately carries **no runtime dependency**: the server derives `z.enum(SORT_
 - Sorted results are deterministic, with `id` as the final tie-breaker **following the sort direction** (`last_name DESC, id DESC`) so a single index serves both directions.
 - Facet ordering is likewise deterministic: `count DESC, value ASC`.
 - **A file is named after the symbol it exports.** On the server that reads as kebab-case (`user-filter-params.ts` exports `userFilterParamsSchema`); on the client it reads as `UserDirectoryCard.tsx` and `useVirtualUserRows.ts`, because React's own casing for a component and a hook is not negotiable. The two look different and follow one rule — which is the point, since the alternative is a component file whose name matches nothing inside it.
+
+  A factory prefix or a kind suffix is **elided**, as `user-filter-params.ts` already drops the `Schema`: `list-users-handler.ts` exports `createListUsersHandler`. What survives the elision is the concept, and it is what both directions are predictable from — you can name the file from the symbol and the symbol from the file. This is deliberately *not* the FDA reference's `apiUser.ts`, which is derivable from neither.
+
+- **A feature imports only its own subtree, `src/shared/`, `@presight/shared`, and npm.** Never a sibling feature. Anything two features need is **promoted to `src/shared/`** — that promotion is the entire mechanism, and there is no second one. Only the composition root reaches into features: `app/` on the client, `app.ts` on the server. `src/shared/` is a **leaf** and may not import a feature, which is the cycle the layout exists to prevent.
+
+  Enforced, not merely agreed: each `eslint.config.js` generates one `no-restricted-imports` block per feature from a single array of feature names, so adding a feature is a one-line edit rather than an edit to every sibling. CI runs `pnpm lint`, so a sibling import fails the build rather than a review.
+
+  The rule decides placement questions that would otherwise be taste. A module used by three features is `shared/` by arithmetic; a module used by one stays put. Where a component reads data from two features — `DirectoryResultCount` takes `shownCount` from the user list and `total` from the facets response — it belongs to neither and is `shared/`, not the composition root, because a feature depending upward on `app/` is the same cycle by another route.
+
+- **No barrel files.** A feature exposes no `index.ts`; importers name the module they want. Three reasons, and any one would do: Vite's performance guide advises against them, since importing one API from a barrel fetches and transforms every file behind it; the server's `nodenext` resolution has no directory-index lookup, so every barrel import would have to be written `../user/index.ts` — longer than the direct import it replaces; and under the import rule above a feature barrel would have exactly one caller, the composition root. The "banned deep imports" a barrel buys are already bought, more cheaply, by banning the sibling outright.
+
+- **Three tiers are called "shared", and they are not the same thing.** `@presight/shared` is the [contract package](#contract-package) — *cross-process*, imported by two independent builds, and it stays a workspace package for the reason that section gives. `client/src/shared/` and `server/src/shared/` are *cross-feature within one process*, and never cross the client/server line. The overload is accepted deliberately: renaming the package would touch every import in both trees to disambiguate a word whose two meanings are already told apart by whether the specifier is bare.
