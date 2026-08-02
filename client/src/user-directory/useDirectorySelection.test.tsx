@@ -104,3 +104,51 @@ describe("useDirectorySelection", () => {
     );
   });
 });
+
+/* The way out of an empty result set, which is the one place a viewer can be
+   stuck: every chip is still on screen and still deselectable, but picking
+   apart four selections one press at a time is not a way out so much as a
+   penance. */
+describe("clearing the selections", () => {
+  it("empties both dimensions at once", async () => {
+    const { result, onUrlUpdate } = renderSelection(
+      "?hobbies=chess&hobbies=judo&nationalities=Germany",
+    );
+
+    act(() => {
+      result.current.clearSelections();
+    });
+
+    await waitFor(() => expect(onUrlUpdate.mock.lastCall?.[0].queryString).toBe(""));
+    expect(result.current.hobbies).toEqual([]);
+    expect(result.current.nationalities).toEqual([]);
+  });
+
+  it("leaves the search text where it is", async () => {
+    /* A selection is not the whole filter. The viewer typed that text and can
+       see it in the box; deleting it from a button that only ever offered to
+       clear the selections would be a surprise, and an empty result set is the
+       worst moment to spring one. */
+    const { result, onUrlUpdate } = renderSelection("?q=m%C3%BCller&hobbies=chess");
+
+    act(() => {
+      result.current.clearSelections();
+    });
+
+    await waitFor(() => expect(onUrlUpdate.mock.lastCall?.[0].queryString).toBe("?q=müller"));
+  });
+
+  it("costs one press of back to undo, not one per selection", async () => {
+    /* Both writes land in one nuqs update, so the history entry covers the whole
+       selection rather than the last key to be cleared. */
+    const { result, onUrlUpdate } = renderSelection("?hobbies=chess&nationalities=Germany");
+
+    act(() => {
+      result.current.clearSelections();
+    });
+
+    await waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
+    expect(onUrlUpdate).toHaveBeenCalledOnce();
+    expect(onUrlUpdate.mock.lastCall?.[0].options.history).toBe("push");
+  });
+});

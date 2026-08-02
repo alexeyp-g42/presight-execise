@@ -1,4 +1,6 @@
 import type { UserFilter } from "../api/userDirectoryApi";
+import { DirectoryLoadErrorNotice } from "./DirectoryLoadErrorNotice";
+import { EmptyResultSetNotice } from "./EmptyResultSetNotice";
 import { FacetFilterSidebar } from "./FacetFilterSidebar";
 import { useDirectorySelection } from "./useDirectorySelection";
 import { useFacetCounts } from "./useFacetCounts";
@@ -21,7 +23,8 @@ import { VirtualizedUserList } from "./VirtualizedUserList";
 
 export const UserDirectoryPage = () => {
   const { searchText, sort, dir, setSearchText, setSort, setDir } = useSharedUrl();
-  const { hobbies, nationalities, toggleHobby, toggleNationality } = useDirectorySelection();
+  const { hobbies, nationalities, toggleHobby, toggleNationality, clearSelections } =
+    useDirectorySelection();
 
   /* The whole predicate, in one value both queries read. The list adds the
      order it is read in; the sidebar adds nothing — which is exactly why
@@ -34,13 +37,25 @@ export const UserDirectoryPage = () => {
     nationalities,
   };
 
-  const { users, hasNextPage, isFetchingNextPage, fetchNextPage } = useUserDirectoryQuery({
-    ...filter,
-    sort,
-    dir,
-  });
+  const {
+    users,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    isFirstLoad,
+    isShowingPreviousView,
+    isFirstPageError,
+    isNextPageError,
+    retryFirstPage,
+  } = useUserDirectoryQuery({ ...filter, sort, dir });
 
   const { facets } = useFacetCounts(filter);
+
+  /* Nobody matched, and it is an answer rather than an absence: the first load
+     is still painting skeletons, and a view being replaced keeps the rows it
+     already had — so the only way to be here with nothing is to have asked and
+     been told nothing. */
+  const isEmptyResultSet = !isFirstLoad && !isFirstPageError && users.length === 0;
 
   return (
     <div className="flex h-dvh flex-col bg-slate-50 text-slate-900">
@@ -66,17 +81,10 @@ export const UserDirectoryPage = () => {
         <FacetFilterSidebar
           facets={facets}
           /* Every page fetched so far, which is what "showing" means when the
-             list is one continuous scroll rather than a run of pages.
-           *
-           * Known transient, stated rather than papered over: the two numbers
-           * come from two queries, and only the facets one keeps its previous
-           * response across a filter change — so for the length of one request
-           * this reads "Showing 0 of <the previous total>". Holding the old
-           * count instead needs the list's loading state, which
-           * `useUserDirectoryQuery` deliberately does not expose yet; that
-           * lands with the rest of the list's status handling in #27, and this
-           * pair should be resolved there rather than by growing a second
-           * source of truth for it here. */
+             list is one continuous scroll rather than a run of pages. Both
+             queries now hold their previous response across a filter change, so
+             this pair goes from one consistent reading to the next rather than
+             through "Showing 0 of <the previous total>" on the way. */
           shownCount={users.length}
           selectedHobbies={hobbies}
           selectedNationalities={nationalities}
@@ -84,17 +92,49 @@ export const UserDirectoryPage = () => {
           onToggleNationality={toggleNationality}
         />
 
-        {/* `min-w-0` beside `min-h-0` for the row layout: a flex item defaults
+        {/* A landmark rather than a bare `div`, because it is now three things
+            over the session — the list, the empty result set and the failed
+            first page — and a viewer who cannot see which one is on screen
+            still has somewhere to jump to and something that says it is busy.
+
+            `min-w-0` beside `min-h-0` for the row layout: a flex item defaults
             to its content's minimum width, and the cards would push the list
             wider than the space left rather than truncate inside it. */}
-        <div className="min-h-0 min-w-0 flex-1">
-          <VirtualizedUserList
-            users={users}
-            hasNextPage={hasNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-            fetchNextPage={fetchNextPage}
-          />
-        </div>
+        <section
+          aria-label="People in the directory"
+          /* One attribute for every reason the pane is mid-answer: the first
+             load, a view being replaced, and a page on its way. */
+          aria-busy={isFirstLoad || isShowingPreviousView || isFetchingNextPage}
+          /* The dim, and only for the middle of those three. Stale rows are
+             still worth reading and still worth scrolling — they are just no
+             longer the answer to the question the viewer has now asked, and
+             taking them off the screen to say so would cost them their place
+             every time they press a chip. */
+          className={`min-h-0 min-w-0 flex-1 transition-opacity ${
+            isShowingPreviousView ? "opacity-40" : ""
+          }`}
+        >
+          {isFirstPageError ? (
+            <DirectoryLoadErrorNotice onRetry={retryFirstPage} />
+          ) : isEmptyResultSet ? (
+            <EmptyResultSetNotice
+              /* Read off the selections rather than tracked: the only thing
+                 that can make the control a no-op is there being nothing
+                 selected, and the URL already says. */
+              canClearSelections={hobbies.length > 0 || nationalities.length > 0}
+              onClearSelections={clearSelections}
+            />
+          ) : (
+            <VirtualizedUserList
+              users={users}
+              isFirstLoad={isFirstLoad}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              isNextPageError={isNextPageError}
+              fetchNextPage={fetchNextPage}
+            />
+          )}
+        </section>
       </main>
     </div>
   );
