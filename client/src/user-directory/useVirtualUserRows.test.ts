@@ -9,13 +9,14 @@ import { shouldFetchNextPage } from "./useVirtualUserRows";
    firing a second request while one is in flight, or firing forever at the
    bottom of a list with nothing left to fetch. */
 
-/* A first page of 50 with more behind it: 50 user rows plus the skeleton row,
-   so the last index is the skeleton at 50. */
+/* A first page of 50 with more behind it: 50 user rows plus the trailing row,
+   so the last index is that row at 50. */
 const firstPageOfMany = {
   lastItemIndex: 50,
   rowCount: 51,
   hasNextPage: true,
   isFetchingNextPage: false,
+  isNextPageError: false,
 };
 
 describe("shouldFetchNextPage", () => {
@@ -33,15 +34,25 @@ describe("shouldFetchNextPage", () => {
   });
 
   it("does not fire when there are no more pages", () => {
-    /* The last page: no skeleton row, so the final index is the last user. */
+    /* The last page: no trailing row, so the final index is the last user. */
     expect(
       shouldFetchNextPage({
         lastItemIndex: 49,
         rowCount: 50,
         hasNextPage: false,
         isFetchingNextPage: false,
+        isNextPageError: false,
       }),
     ).toBe(false);
+  });
+
+  it("does not fire again after the page it would ask for has failed", () => {
+    /* The one guard without which a dead network is a loop rather than a
+       message: the failed page leaves the cursor unspent and the trailing row
+       rendered, so every other input still says yes — and the request settling
+       is itself what re-runs this. The way on is the viewer pressing the retry
+       control in that row, which calls `fetchNextPage` directly. */
+    expect(shouldFetchNextPage({ ...firstPageOfMany, isNextPageError: true })).toBe(false);
   });
 
   it("does not fire while the rendered window is short of the end", () => {
@@ -58,6 +69,23 @@ describe("shouldFetchNextPage", () => {
         rowCount: 0,
         hasNextPage: true,
         isFetchingNextPage: false,
+        isNextPageError: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("does not fire against the first load's skeleton rows", () => {
+    /* The skeletons are rows in the same virtualizer, so the last one of them
+       reaches the end of the list exactly as a real trailing row would. What
+       stops this is that there is no cursor yet — nothing has answered, so
+       there is no next page to be at the end of. */
+    expect(
+      shouldFetchNextPage({
+        lastItemIndex: 11,
+        rowCount: 12,
+        hasNextPage: false,
+        isFetchingNextPage: false,
+        isNextPageError: false,
       }),
     ).toBe(false);
   });

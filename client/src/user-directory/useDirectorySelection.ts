@@ -31,6 +31,8 @@ export type DirectorySelectionResult = {
   /** Adds the value if it is absent, removes it if it is there. */
   toggleHobby: (hobby: string) => void;
   toggleNationality: (nationality: string) => void;
+  /** Empties **both** dimensions. The search text is not a selection and is left alone. */
+  clearSelections: () => void;
 };
 
 const toggled = (selection: string[], value: string): string[] =>
@@ -61,5 +63,18 @@ export const useDirectorySelection = (): DirectorySelectionResult => {
     [setNationalities],
   );
 
-  return { hobbies, nationalities, toggleHobby, toggleNationality };
+  /* `null` rather than `[]`: nuqs removes a key whose value equals the parser's
+     default, and the default here *is* the empty array — so both spellings clear
+     the selection, and `null` says which of the two is meant.
+
+     One act rather than two, and the URL agrees: nuqs batches the writes it
+     receives in a tick into a single update, so both keys leave together, one
+     history entry is pushed, and back restores the whole selection the viewer
+     was stuck in rather than half of it. */
+  const clearSelections = useCallback(() => {
+    void setHobbies(null);
+    void setNationalities(null);
+  }, [setHobbies, setNationalities]);
+
+  return { hobbies, nationalities, toggleHobby, toggleNationality, clearSelections };
 };
