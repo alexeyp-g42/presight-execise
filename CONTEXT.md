@@ -2,7 +2,7 @@
 
 A read-only **user directory**: a React client over a Node API over SQLite, offering text search, multi-select hobby and nationality filters, sorting, infinite virtualized scroll, URL-synced view state, and top-20 facet counts that reflect the active filter state.
 
-The full exercise brief is in `README.md`. Decisions are charted on the wayfinder map, [#2](https://github.com/FikiratJavadov/presight-execise/issues/2).
+The full exercise brief is in `docs/brief.md`, and `README.md` is how a reviewer runs it. Decisions are charted on the wayfinder map, [#2](https://github.com/FikiratJavadov/presight-execise/issues/2).
 
 ## Glossary
 
