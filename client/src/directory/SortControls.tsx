@@ -1,4 +1,5 @@
 import { SORT_FIELDS, type SortField, type SortOrder } from '@contract';
+import { cn } from '../lib/cn';
 
 const LABELS: Record<SortField, string> = {
   first_name: 'First name',
@@ -13,35 +14,51 @@ interface Props {
   onChange: (patch: { sort?: SortField; order?: SortOrder }) => void;
 }
 
+/**
+ * Rows rather than a native <select>: macOS renders the select's popup at the
+ * system font size regardless of the element's own, so it cannot be made to
+ * match the rest of the sidebar. Rows also reuse the facet-row language, which
+ * makes the whole rail read as one control surface.
+ *
+ * Clicking the active field flips the direction, the way a sortable table
+ * header does; the arrow on the active row is the affordance.
+ */
 export function SortControls({ sort, order, onChange }: Props) {
   const ascending = order === 'asc';
 
   return (
-    <div className="flex gap-1.5">
-      <label className="min-w-0 flex-1">
-        <span className="sr-only">Sort by</span>
-        <select
-          value={sort}
-          onChange={(event) => onChange({ sort: event.target.value as SortField })}
-          className="w-full rounded-md border border-line bg-surface px-2 py-1.5 text-sm text-ink outline-none transition-colors hover:border-faint focus:border-accent"
-        >
-          {SORT_FIELDS.map((field) => (
-            <option key={field} value={field}>
-              {LABELS[field]}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <button
-        type="button"
-        onClick={() => onChange({ order: ascending ? 'desc' : 'asc' })}
-        title={ascending ? 'Sorted ascending' : 'Sorted descending'}
-        aria-label={ascending ? 'Sorted ascending. Sort descending' : 'Sorted descending. Sort ascending'}
-        className="num shrink-0 rounded-md border border-line bg-surface px-2.5 text-sm text-ink transition-colors hover:border-faint"
-      >
-        {ascending ? '↑' : '↓'}
-      </button>
-    </div>
+    <ul className="space-y-px" role="listbox" aria-label="Sort by">
+      {SORT_FIELDS.map((field) => {
+        const active = field === sort;
+        return (
+          <li key={field}>
+            <button
+              type="button"
+              role="option"
+              aria-selected={active}
+              onClick={() =>
+                active ? onChange({ order: ascending ? 'desc' : 'asc' }) : onChange({ sort: field })
+              }
+              aria-label={
+                active
+                  ? `Sorted by ${LABELS[field]}, ${ascending ? 'ascending' : 'descending'}. Reverse the order`
+                  : `Sort by ${LABELS[field]}`
+              }
+              className={cn(
+                'flex w-full items-center justify-between gap-2 rounded px-2 py-1 text-left text-sm transition-colors',
+                active ? 'bg-accent text-accent-ink' : 'text-ink hover:bg-bar',
+              )}
+            >
+              <span className="truncate">{LABELS[field]}</span>
+              {active && (
+                <span aria-hidden className="num shrink-0 text-xs">
+                  {ascending ? '↑' : '↓'}
+                </span>
+              )}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
