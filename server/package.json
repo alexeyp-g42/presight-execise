@@ -16,11 +16,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.5.0",
     "express": "~5.1.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@faker-js/faker": "^10.5.0",
     "@types/express": "~5.0.1",
     "@types/node": "^26.1.2",
     "@types/supertest": "^7.2.1",
