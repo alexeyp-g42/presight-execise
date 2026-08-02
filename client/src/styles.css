@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/**
+ * A directory is an index: its native artifacts are ordered runs and counts in
+ * the margin. The palette is cool paper and blue-cast ink, with one amber
+ * accent used only as a fill — a highlighter on a ledger, never amber text.
+ */
+@theme {
+  --color-paper: #fbfbfd;
+  --color-surface: #ffffff;
+  --color-ink: #14161d;
+  --color-muted: #6b7180;
+  --color-faint: #9aa0ad;
+  --color-line: #e5e7ee;
+  --color-accent: #f5b944;
+  --color-accent-ink: #3d2c05;
+  --color-bar: #f5b94426;
+  --color-danger: #b42318;
+  --color-danger-surface: #fef3f2;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Overriding the custom properties flips every generated utility at once, so
+   the components carry no `dark:` variants at all. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: #0e1015;
+    --color-surface: #161922;
+    --color-ink: #e9eaef;
+    --color-muted: #9298a6;
+    --color-faint: #6b7180;
+    --color-line: #262a35;
+    --color-accent: #f5b944;
+    --color-accent-ink: #2a1e03;
+    --color-bar: #f5b94421;
+    --color-danger: #fda29b;
+    --color-danger-surface: #2a1614;
+  }
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Numbers are data in a directory, not prose: they get the utility face and
+   fixed-width digits so counts never jitter as they change. */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Wide-tracked micro-labels, the vernacular of an index. */
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

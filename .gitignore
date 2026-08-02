@@ -36,3 +36,6 @@ server/data/
 *.db
 *.db-wal
 *.db-shm
+
+# playwright mcp artifacts
+.playwright-mcp/
