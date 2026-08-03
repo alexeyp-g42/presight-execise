@@ -15,27 +15,34 @@ interface Props {
 }
 
 /**
- * Rows rather than a native <select>: macOS renders the select's popup at the
+ * Rows rather than a native <select>: macOS renders a select's popup at the
  * system font size regardless of the element's own, so it cannot be made to
- * match the rest of the sidebar. Rows also reuse the facet-row language, which
- * makes the whole rail read as one control surface.
+ * match the sidebar. Rows also reuse the facet-row language, which makes the
+ * whole rail read as one control surface.
  *
- * Clicking the active field flips the direction, the way a sortable table
+ * Clicking the active field reverses the order, the way a sortable table
  * header does; the arrow on the active row is the affordance.
+ *
+ * Marked with `aria-current` rather than a listbox or radiogroup. Those roles
+ * promise arrow-key navigation within a single tab stop, and a listbox option
+ * may not contain interactive content — neither fits four ordinary buttons.
+ * `aria-current` says exactly what is true: this is the active item in a set.
+ * Each button's accessible name states what activating it will do, since the
+ * active one reverses the order instead of re-selecting itself.
  */
 export function SortControls({ sort, order, onChange }: Props) {
   const ascending = order === 'asc';
 
   return (
-    <ul className="space-y-px" role="listbox" aria-label="Sort by">
-      {SORT_FIELDS.map((field) => {
-        const active = field === sort;
-        return (
-          <li key={field}>
+    <>
+      <div role="group" aria-label="Sort by" className="space-y-px">
+        {SORT_FIELDS.map((field) => {
+          const active = field === sort;
+          return (
             <button
+              key={field}
               type="button"
-              role="option"
-              aria-selected={active}
+              aria-current={active ? 'true' : undefined}
               onClick={() =>
                 active ? onChange({ order: ascending ? 'desc' : 'asc' }) : onChange({ sort: field })
               }
@@ -56,9 +63,15 @@ export function SortControls({ sort, order, onChange }: Props) {
                 </span>
               )}
             </button>
-          </li>
-        );
-      })}
-    </ul>
+          );
+        })}
+      </div>
+
+      {/* Changing the sort does not change the result count, so nothing else
+          would announce it. */}
+      <p role="status" className="sr-only">
+        Sorted by {LABELS[sort]}, {ascending ? 'ascending' : 'descending'}
+      </p>
+    </>
   );
 }
