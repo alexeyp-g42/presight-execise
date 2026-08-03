@@ -42,6 +42,28 @@ export function UserList({ params, onClear }: Props) {
     }
   }, [virtualItems, users.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  /**
+   * A new filter or sort is a new result set, so it starts at the top.
+   *
+   * Without this, someone who has scrolled deep into 50,000 people and then
+   * searches keeps their old scroll offset: the browser clamps it to the much
+   * shorter list and strands them in the middle of their own results. Keyed on
+   * the result-set identity rather than on `users`, so loading the next page —
+   * which also changes `users` — does not yank the list back to the top.
+   */
+  const resultSetKey = [
+    params.q.trim(),
+    [...params.nationalities].sort().join(','),
+    [...params.hobbies].sort().join(','),
+    params.sort,
+    params.order,
+  ].join('|');
+
+  useEffect(() => {
+    virtualizer.scrollToOffset(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the result set, not the virtualizer instance
+  }, [resultSetKey]);
+
   // `isPending`, not `isFetching`: with keepPreviousData the latter is true on
   // every keystroke, and gating on it would replace the visible list with
   // skeletons while someone is still typing.
