@@ -1,0 +1,152 @@
+@use './styles/breakpoints' as *;
+
+// ── Page shell ──────────────────────────────────────────────
+.page {
+    position: relative;
+    min-height: 100vh;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+    display: grid;
+    grid-template-columns: 1fr; // mobile: everything stacks
+    // Keep the blocks packed at the top. Without this, `min-height: 100vh` lets the default
+    // `align-content: stretch` share the leftover viewport height out between the rows, which
+    // pushes them apart whenever the content is short (an error or empty result, say).
+    align-content: start;
+    gap: 14px;
+
+    // F1 glow backdrop
+    &::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+            radial-gradient(circle 560px at -5% -10%, rgba(255, 212, 0, 0.18), transparent 62%),
+            radial-gradient(circle 640px at 105% -5%, rgba(255, 46, 136, 0.16), transparent 62%),
+            repeating-linear-gradient(104deg, transparent 0 46px, rgba(255, 255, 255, 0.022) 46px 48px);
+    }
+
+    @include md {
+        padding: 26px 24px 40px;
+    }
+}
+
+// ── Block 1: brand + text filter + sort ─────────────────────
+.block1 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+
+    @include lg {
+        // desktop: brand left, controls right — one line
+        grid-template-columns: auto 1fr;
+        align-items: center;
+    }
+}
+
+.brand {
+    // display: flex;
+    // align-items: center;
+    // gap: 14px;
+}
+
+.logoIcon {
+    flex: none;
+    color: var(--c-pink);
+    vertical-align: -0.2em;
+    margin-right: 8px;
+}
+
+.logo {
+    font-weight: 900;
+    font-style: italic;
+    font-size: 24px;
+    letter-spacing: -0.5px;
+    color: var(--c-yellow);
+    em {
+        font-style: italic;
+        color: var(--c-pink);
+    }
+}
+
+.title {
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    @include md {
+        justify-content: flex-end;
+    } // tablet: line 2, right corner
+    @include lg {
+        justify-content: flex-end;
+    } // desktop: same line as brand, right
+}
+
+// ── Block 2: applied filters + result count ─────────────────
+.block2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+
+    @include md {
+        grid-template-columns: 1fr auto; // chips left (wrapping), count right
+        align-items: start;
+    }
+}
+
+.filtersRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.count {
+    font-weight: 800;
+    font-style: italic;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.65);
+    white-space: nowrap;
+    @include md {
+        padding-top: 12px;
+    }
+}
+
+// ── Block 3: facets sidebar + users list ────────────────────
+.block3 {
+    display: grid;
+    grid-template-columns: 1fr; // mobile: panels stack above list
+    gap: 14px;
+    align-items: start;
+
+    @include md {
+        grid-template-columns: 240px 1fr;
+    }
+    @include lg {
+        grid-template-columns: 260px 1fr;
+    }
+}
+
+.sidebar {
+    display: grid;
+    gap: 14px;
+
+    @include md {
+        position: sticky; // sticky facets on tablet/desktop
+        top: 14px;
+    }
+}
+
+.list {
+    min-width: 0;
+}

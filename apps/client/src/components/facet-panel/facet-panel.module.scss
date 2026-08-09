@@ -1,0 +1,105 @@
+@use '../../styles/breakpoints' as *;
+
+.panel {
+    background: var(--c-panel);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--c-line);
+    padding: 12px 16px 14px;
+}
+
+.header {
+    appearance: none;
+    background: transparent;
+    border: none;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    cursor: pointer;
+
+    @include md {
+        cursor: default;
+    }
+}
+
+.title {
+    font: 900 12px var(--font);
+    font-style: italic;
+    letter-spacing: 2px;
+    color: var(--c-yellow);
+}
+
+.caret {
+    color: var(--c-dim);
+    flex: none;
+    transition: transform 150ms ease;
+
+    &[data-open] {
+        transform: rotate(180deg);
+    }
+
+    @include md {
+        display: none;
+    } // always open on md+, no affordance needed
+}
+
+.rows {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 300px;
+    overflow: auto;
+}
+
+.row {
+    appearance: none;
+    background: transparent;
+    border: none;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 8px;
+    cursor: pointer;
+    user-select: none;
+
+    &[data-accent='pink']:hover {
+        background: rgba(255, 212, 0, 0.1);
+    }
+    &[data-accent='yellow']:hover {
+        background: rgba(255, 46, 136, 0.12);
+    }
+    &[data-selected][data-accent='pink'] {
+        background: rgba(255, 46, 136, 0.18);
+    }
+    &[data-selected][data-accent='yellow'] {
+        background: rgba(255, 212, 0, 0.14);
+    }
+}
+
+.name {
+    font: 600 12px var(--font);
+    color: rgba(255, 255, 255, 0.85);
+    text-align: left;
+}
+
+.count {
+    font: 800 11px var(--font);
+
+    &[data-accent='pink'] {
+        color: var(--c-pink);
+    }
+    &[data-accent='yellow'] {
+        color: var(--c-yellow);
+    }
+}
+
+.none {
+    padding: 7px 8px;
+    font: 600 11px var(--font);
+    color: var(--c-faint);
+}

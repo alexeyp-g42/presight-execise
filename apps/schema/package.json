@@ -1,0 +1,25 @@
+{
+    "name": "@presight/schema",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview"
+    },
+    "devDependencies": {
+        "typescript": "7.0.2",
+        "vite": "8.2.0",
+        "zod": "^4.4.3"
+    },
+    "peerDependencies": {
+        "zod": "^4.4.3"
+    }
+}

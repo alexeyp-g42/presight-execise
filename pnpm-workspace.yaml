@@ -1,0 +1,11 @@
+packages:
+  - 'apps/*'
+allowBuilds:
+  # Only used by the `sass` CLI's own --watch; Vite does its own file watching.
+  '@parcel/watcher': false
+  esbuild: true
+  # Non-critical by nx's own admission: the native binary arrives via optionalDependencies, and
+  # nx.json carries no Nx Cloud token, so this postinstall has nothing left to do.
+  nx: false
+engineStrict: true
+injectWorkspacePackages: true

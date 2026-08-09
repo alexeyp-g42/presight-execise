@@ -1,0 +1,209 @@
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.item {
+    padding-bottom: 10px; // gap between virtualized rows
+}
+
+.skeleton {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 14px 18px;
+    height: 72px;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.04) 25%,
+        rgba(255, 255, 255, 0.09) 37%,
+        rgba(255, 255, 255, 0.04) 63%
+    );
+    background-size: 800px 100%;
+    animation: shimmer 1.4s linear infinite;
+}
+
+.skelAvatar {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.skelBody {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skelLine {
+    height: 11px;
+    background: rgba(255, 255, 255, 0.09);
+}
+
+.loadingLabel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    font: 800 11px var(--font);
+    font-style: italic;
+    letter-spacing: 2px;
+    color: var(--c-pink);
+    padding: 4px 0 10px;
+}
+
+.error {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-top: 10px;
+    padding: 13px 16px;
+    background: rgba(255, 60, 60, 0.09);
+    border: 1px solid rgba(255, 90, 90, 0.55);
+}
+
+.errorTitle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font: 900 12px var(--font);
+    font-style: italic;
+    color: var(--c-error);
+}
+
+.errorMsg {
+    flex: 1;
+    font: 600 12px var(--font);
+    color: rgba(255, 160, 160, 0.85);
+}
+
+.retry {
+    appearance: none;
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border: 1px solid var(--c-error);
+    color: #ffb3b3;
+    font: 800 11px var(--font);
+    letter-spacing: 1px;
+    transform: var(--skew);
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(255, 90, 90, 0.15);
+    }
+}
+
+.empty {
+    border: 1px dashed rgba(255, 212, 0, 0.4);
+    padding: 44px 30px;
+    text-align: center;
+    background: rgba(19, 16, 24, 0.7);
+}
+
+.emptyTitle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font: 900 20px var(--font);
+    font-style: italic;
+    letter-spacing: 1px;
+    color: var(--c-yellow);
+    margin-bottom: 8px;
+}
+
+.emptyMsg {
+    font: 600 13px var(--font);
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 16px;
+}
+
+.clearBtn {
+    appearance: none;
+    border: none;
+    display: inline-block;
+    padding: 11px 20px;
+    background: var(--c-pink);
+    color: #fff;
+    font: 800 12px var(--font);
+    letter-spacing: 1px;
+    transform: var(--skew);
+    cursor: pointer;
+}
+
+.end {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    font: 700 11px var(--font);
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.35);
+    padding: 14px;
+}
+
+.spinner {
+    flex: none;
+    animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Positioning context for the loading overlay. The list itself scrolls with the window
+// (Virtuoso useWindowScroll), so this can be tall — see .overlayPanel for how the message
+// stays on screen regardless.
+.host {
+    position: relative;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    justify-content: center;
+    // Dims whatever is underneath — stale results or skeletons — without hiding it, so the user
+    // keeps their place instead of watching the list disappear.
+    background: rgba(19, 17, 24, 0.62);
+    backdrop-filter: blur(1px);
+    // Clicks land on the backdrop rather than on rows that are about to be replaced.
+    cursor: progress;
+}
+
+.overlayPanel {
+    // Sticky, not centred: the overlay spans the full list height, which can be many screens.
+    // Centring would park the message off-screen; this keeps it just below the top of the
+    // viewport however far down the user has scrolled.
+    position: sticky;
+    top: 40px;
+    align-self: flex-start;
+    height: fit-content;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    background: var(--c-popover);
+    border: 1px solid rgba(255, 212, 0, 0.45);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+    transform: var(--skew);
+
+    font: 800 11px var(--font);
+    font-style: italic;
+    letter-spacing: 2px;
+    color: var(--c-yellow);
+    white-space: nowrap;
+}

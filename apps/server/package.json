@@ -1,0 +1,29 @@
+{
+    "name": "@presight/server",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "main": "./dist/index.js",
+    "scripts": {
+        "dev": "node --watch --env-file-if-exists=.env src/index.ts 200",
+        "start": "node src/index.ts",
+        "typecheck:watch": "tsc --watch",
+        "typecheck": "tsc",
+        "data:seed": "node scripts/seed-data-to-sqlite-db.ts",
+        "data:create-fresh": "node scripts/generate-data.ts && pnpm run data:seed",
+        "init:dev": "node scripts/init-env.ts && node --env-file-if-exists=.env scripts/seed-data-to-sqlite-db.ts",
+        "init:prod": "node scripts/seed-data-to-sqlite-db.ts"
+    },
+    "dependencies": {
+        "@presight/schema": "workspace:*",
+        "express": "^5.2.1",
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@faker-js/faker": "^10.5.0",
+        "@types/express": "^5.0.5",
+        "@types/node": "^26.0.0",
+        "esbuild": "^0.28.1",
+        "typescript": "7.0.2"
+    }
+}

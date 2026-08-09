@@ -1,0 +1,31 @@
+# git
+.git/
+.gitignore
+
+# dependencies (installed fresh inside the image)
+**/node_modules/
+
+# build output (regenerated inside the image)
+**/dist/
+**/build/
+**/*.tsbuildinfo
+**/.vite/
+
+# nx task cache — copying the host's would let the image restore build outputs it never produced
+.nx/
+
+# local sqlite database (generated inside the image from user_data.csv)
+apps/server/data/
+
+# env / secrets (patterns are not recursive, so match at any depth explicitly)
+**/.env
+**/.env.*
+!**/.env.example
+
+# editor / OS
+.vscode/
+.DS_Store
+
+# docker itself
+Dockerfile
+.dockerignore

@@ -1,0 +1,32 @@
+// Archivo, self-hosted as two variable fonts. Replaces the 21 @font-face blocks that pointed at
+// fonts.gstatic.com: no third-party request, no render-blocking stylesheet, works offline.
+//
+// Axis ranges below are read from the files themselves, not copied from the specimen page:
+//   wght  100 – 900   (default 600)
+//   wdth   62 – 125   (default 100)
+//
+// One file per style. `font-style: italic` on the second is what lets the browser pick it for
+// italic text rather than synthesising a slant from the upright face — the app leans on italics
+// heavily (the wordmark, every user name), and faux-oblique Archivo looks noticeably wrong.
+//
+// The filenames contain a comma. url() is a single token rather than a comma-separated argument
+// list, so a comma is legal either way — the minifier strips these quotes and the result is still
+// valid. Quoted here only because it reads less ambiguously.
+
+@font-face {
+    font-family: 'Archivo';
+    src: url('/fonts/Archivo-VariableFont_wdth,wght.woff2') format('woff2');
+    font-weight: 100 900;
+    font-stretch: 62% 125%;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Archivo';
+    src: url('/fonts/Archivo-Italic-VariableFont_wdth,wght.woff2') format('woff2');
+    font-weight: 100 900;
+    font-stretch: 62% 125%;
+    font-style: italic;
+    font-display: swap;
+}

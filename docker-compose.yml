@@ -1,0 +1,46 @@
+# Local verification of the production images. Both services build from the single root
+# Dockerfile, selecting a different target stage.
+#
+#   docker compose up --build
+#   client -> http://localhost:8086   (also serves the API at /api)
+#
+# The client reaches the API through nginx over this network, so the two are same-origin in the
+# browser and no CORS configuration is involved. Ports are runtime-only — changing them never
+# requires a rebuild.
+#
+#   SERVER_PORT  port the API listens on *inside* the container. One value drives the server's
+#                PORT, the container side of the published mapping, and the nginx upstream, so
+#                they cannot drift apart.
+#   API_PORT     host port the API is published on (debugging only)
+#   WEB_PORT     host port the client is served on
+services:
+    server:
+        build:
+            context: .
+            target: pseserver
+        image: presight-server
+        environment:
+            NODE_ENV: production
+            PORT: ${SERVER_PORT:-3030}
+            # Relative to the app root inside the image. The database is baked in at build time
+            # from user_data.csv, so no volume is needed.
+            DATABASE_FILE: data/user_data.db
+            # CORS_ORIGIN is intentionally unset: the browser only ever talks to nginx, which is
+            # same-origin. It is needed only if you point a client at this port directly.
+        ports:
+            # Published purely so the API can be curl'd while debugging. The client does not use
+            # this port — it reaches the server over the compose network instead.
+            - '${API_PORT:-3030}:${SERVER_PORT:-3030}'
+
+    client:
+        build:
+            context: .
+            target: pseclient
+        image: presight-client
+        environment:
+            # Substituted into the nginx config at container start.
+            API_UPSTREAM: server:${SERVER_PORT:-3030}
+        ports:
+            - '${WEB_PORT:-8086}:8086'
+        depends_on:
+            - server

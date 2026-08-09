@@ -1,0 +1,55 @@
+.root {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.chip {
+    appearance: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font: 800 11px var(--font);
+    letter-spacing: 1px;
+    transform: var(--skew);
+    cursor: pointer;
+    user-select: none;
+
+    &[data-kind='hobby'] {
+        background: var(--c-pink);
+        color: #fff;
+    }
+    &[data-kind='nationality'] {
+        background: var(--c-yellow);
+        color: var(--c-bg);
+    }
+    &:hover {
+        opacity: 0.8;
+    }
+}
+
+.x {
+    opacity: 0.65;
+    flex: none;
+}
+
+.clear {
+    appearance: none;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font: 700 11px var(--font);
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--c-text);
+    }
+}

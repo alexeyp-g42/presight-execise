@@ -1,0 +1,11 @@
+.flag {
+    // Emoji come from the system emoji font, not Archivo, and they must not inherit the wide
+    // letter-spacing the uppercase labels use — that would split the two regional indicators
+    // apart and break the pair into two separate letters.
+    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+    letter-spacing: normal;
+    font-size: 1.15em;
+    line-height: 1;
+    margin-right: 6px;
+    vertical-align: -0.08em;
+}

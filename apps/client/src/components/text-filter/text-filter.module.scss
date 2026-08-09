@@ -1,0 +1,51 @@
+@use '../../styles/breakpoints' as *;
+
+.root {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.icon {
+    // Sits over the input's left padding. The skew is applied to the input only, so the icon
+    // stays upright while the field around it leans.
+    position: absolute;
+    left: 12px;
+    pointer-events: none;
+    color: var(--c-faint);
+    z-index: 1;
+}
+
+.input {
+    width: 100%;
+    padding: 11px 14px 11px 34px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: var(--c-text);
+    font: 700 12px var(--font);
+    letter-spacing: 1px;
+    outline: none;
+    transform: var(--skew);
+    appearance: none;
+
+    &::placeholder {
+        color: var(--c-faint);
+    }
+    &:focus {
+        border-color: var(--c-yellow);
+
+        + .icon,
+        ~ .icon {
+            color: var(--c-yellow);
+        }
+    }
+
+    @include md {
+        width: 240px;
+    }
+}
+
+// `.icon` precedes `.input`, so the sibling combinator above cannot reach it — scope by the root.
+.root:focus-within .icon {
+    color: var(--c-yellow);
+}

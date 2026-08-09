@@ -1,0 +1,30 @@
+{
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "plugins": ["import", "typescript", "unicorn", "oxc", "react", "react-hooks"],
+    "categories": {
+        "correctness": "error",
+        "suspicious": "warn",
+        "perf": "warn"
+    },
+    "env": {
+        "es2025": true
+    },
+    "ignorePatterns": ["**/dist/**", "**/node_modules/**", "**/*.tsbuildinfo"],
+    "rules": {
+        "no-console": "off",
+        "typescript/consistent-type-imports": "error",
+        "react/react-in-jsx-scope": "off",
+        "import/no-unassigned-import": "off",
+        "react/no-unstable-nested-components": ["warn", { "allowAsProps": true }]
+    },
+    "overrides": [
+        {
+            "files": ["apps/client/**/*.{ts,tsx}"],
+            "env": { "browser": true }
+        },
+        {
+            "files": ["apps/server/**/*.ts", "apps/schema/**/*.ts", "scripts/**/*.{js,mjs,ts}"],
+            "env": { "node": true }
+        }
+    ]
+}

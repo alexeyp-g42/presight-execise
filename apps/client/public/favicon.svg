@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="LIST">
+    <!-- Tile with the clipped bottom-right corner used by the cards and chips. -->
+    <path d="M0 0h32v24l-8 8H0Z" fill="#131118" />
+    <!-- "L" sheared by 8deg to match the italic wordmark.
+         Yellow stem, pink foot: the app's two accent colours in one glyph. -->
+    <g transform="translate(3 0) skewX(-8)">
+        <path d="M6 4h7v17H6Z" fill="#ffd400" />
+        <path d="M6 21h17v7H6Z" fill="#ff2e88" />
+    </g>
+</svg>

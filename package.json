@@ -1,17 +1,18 @@
 {
-  "name": "presight-execise",
-  "version": "1.0.0",
-  "repository": "",
-  "author": "",
-  "license": "MIT",
-  "workspaces": [
-    "client",
-    "server"
-  ],
-  "scripts": {
-    "start": "lerna run start"
-  },
-  "devDependencies": {
-    "lerna": "~8.2.1"
-  }
+    "name": "presight-exercise",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "format": "oxfmt",
+        "format:check": "oxfmt --check",
+        "lint": "oxlint"
+    },
+    "devDependencies": {
+        "nx": "^23.1.1",
+        "oxfmt": "^0.61.0",
+        "oxlint": "^1.76.0"
+    },
+    "engines": {
+        "node": ">=26.0.0"
+    }
 }

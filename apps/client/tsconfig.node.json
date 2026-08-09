@@ -1,0 +1,10 @@
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        /* If your code doesn't run in the DOM: */
+        "lib": ["es2022"],
+        "composite": true,
+        "declarationMap": true
+    },
+    "include": ["vite.config.ts"]
+}

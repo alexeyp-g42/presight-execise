@@ -1,0 +1,56 @@
+@use './fonts';
+
+:root {
+    --c-bg: #131118;
+    // Card surface. Sits a clear step above --c-bg so rows read as distinct cards; the earlier
+    // value composited to #17151D, barely 4/255 off the page background.
+    --c-surface: rgba(39, 33, 50, 0.86);
+    --c-panel: rgba(19, 16, 24, 0.8);
+    --c-popover: #1c1823;
+    --c-line: rgba(255, 255, 255, 0.09);
+    --c-yellow: #ffd400;
+    --c-pink: #ff2e88;
+    --c-text: #ffffff;
+    --c-dim: rgba(255, 255, 255, 0.55);
+    --c-faint: rgba(255, 255, 255, 0.38);
+    --c-error: #ff7b7b;
+    --skew: skewX(-8deg);
+    --font: 'Archivo', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--c-bg);
+    color: var(--c-text);
+    font-family: var(--font);
+}
+
+a {
+    color: var(--c-yellow);
+}
+a:hover {
+    color: var(--c-pink);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 212, 0, 0.25);
+}
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -400px 0;
+    }
+    100% {
+        background-position: 400px 0;
+    }
+}

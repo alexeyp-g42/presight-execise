@@ -1,0 +1,13 @@
+// Mobile-first breakpoints. Base styles = mobile; layer up with these mixins.
+@mixin md {
+    // tablet, > 640px
+    @media (min-width: 641px) {
+        @content;
+    }
+}
+@mixin lg {
+    // desktop, > 1024px
+    @media (min-width: 1025px) {
+        @content;
+    }
+}

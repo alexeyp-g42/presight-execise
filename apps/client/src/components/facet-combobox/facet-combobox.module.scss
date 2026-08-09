@@ -1,0 +1,116 @@
+@use '../../styles/breakpoints' as *;
+
+.field {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.icon {
+    // Overlays the input's left padding; stays upright while the skewed field leans behind it.
+    position: absolute;
+    left: 12px;
+    pointer-events: none;
+    z-index: 1;
+
+    &[data-accent='yellow'] {
+        color: rgba(255, 212, 0, 0.75);
+    }
+    &[data-accent='pink'] {
+        color: rgba(255, 46, 136, 0.8);
+    }
+}
+
+.input {
+    width: 100%;
+    padding: 11px 14px 11px 34px;
+    color: var(--c-text);
+    font: 700 11px var(--font);
+    letter-spacing: 1px;
+    outline: none;
+    transform: var(--skew);
+    appearance: none;
+
+    &::placeholder {
+        color: var(--c-faint);
+    }
+
+    &[data-accent='yellow'] {
+        background: rgba(255, 212, 0, 0.06);
+        border: 1px solid rgba(255, 212, 0, 0.45);
+        &:focus {
+            border-color: var(--c-yellow);
+            background: rgba(255, 212, 0, 0.1);
+        }
+    }
+    &[data-accent='pink'] {
+        background: rgba(255, 46, 136, 0.07);
+        border: 1px solid rgba(255, 46, 136, 0.5);
+        &:focus {
+            border-color: var(--c-pink);
+            background: rgba(255, 46, 136, 0.12);
+        }
+    }
+
+    @include md {
+        width: 260px;
+    }
+}
+
+.dropdown {
+    position: absolute;
+    z-index: 40;
+    margin-top: 6px;
+    width: 100%;
+    background: var(--c-popover);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+
+    &[data-accent='yellow'] {
+        border: 1px solid rgba(255, 212, 0, 0.4);
+    }
+    &[data-accent='pink'] {
+        border: 1px solid rgba(255, 46, 136, 0.45);
+    }
+
+    @include md {
+        width: 260px;
+    }
+}
+
+.options {
+    max-height: 240px;
+    overflow: auto;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 13px;
+    font: 700 12px var(--font);
+    letter-spacing: 0.5px;
+    color: var(--c-text);
+    cursor: pointer;
+
+    &:hover,
+    &[data-combobox-selected] {
+        background: rgba(255, 212, 0, 0.12);
+    }
+    &[data-selected] {
+        background: rgba(255, 212, 0, 0.08);
+    }
+}
+
+.check {
+    color: var(--c-pink);
+    flex: none;
+}
+
+.empty {
+    padding: 11px 13px;
+    font: 600 11px var(--font);
+    color: rgba(255, 255, 255, 0.4);
+}

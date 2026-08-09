@@ -1,0 +1,112 @@
+.root {
+    display: flex;
+    transform: var(--skew);
+}
+
+.trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 12px;
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--c-yellow);
+    outline: none;
+    color: var(--c-yellow);
+    font: 800 12px var(--font);
+    letter-spacing: 1px;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        background: rgba(255, 212, 0, 0.08);
+    }
+    &:focus-visible {
+        background: rgba(255, 212, 0, 0.12);
+    }
+}
+
+.sortIcon {
+    flex: none;
+    color: rgba(255, 212, 0, 0.65);
+}
+
+.prefix {
+    color: rgba(255, 212, 0, 0.65);
+}
+
+.value {
+    // Keeps the trigger from resizing as the label length changes.
+    min-width: 92px;
+    text-align: left;
+}
+
+.chevron {
+    flex: none;
+    transition: transform 150ms ease;
+
+    &[data-open] {
+        transform: rotate(180deg);
+    }
+}
+
+.dropdown {
+    // Required: `position` normally comes from Mantine's Popover.css, which HeadlessMantineProvider
+    // does not load. Without it the dropdown stays static and flows to the end of <body>.
+    // Must stay in sync with the Combobox's floatingStrategy.
+    position: fixed;
+    z-index: 40;
+    // Portalled, so a percentage width would resolve against the body rather than the trigger.
+    min-width: 168px;
+    background: var(--c-popover);
+    border: 1px solid rgba(255, 212, 0, 0.4);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+}
+
+.options {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.option {
+    padding: 9px 13px;
+    font: 800 12px var(--font);
+    letter-spacing: 1px;
+    color: var(--c-text);
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover,
+    &[data-combobox-selected] {
+        background: rgba(255, 212, 0, 0.12);
+    }
+    &[data-selected] {
+        color: var(--c-yellow);
+        background: rgba(255, 212, 0, 0.08);
+    }
+}
+
+.dirGroup {
+    display: flex;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-left: none;
+}
+
+.dirBtn {
+    appearance: none;
+    background: transparent;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 11px 12px;
+    font: 800 12px var(--font);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+
+    &[data-active] {
+        background: var(--c-pink);
+        color: #fff;
+    }
+}
