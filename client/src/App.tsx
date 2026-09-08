@@ -19,8 +19,9 @@ export function App() {
   const filtersButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    if (debouncedText !== syncedText.current) {
-      syncedText.current = debouncedText
+    const trimmed = debouncedText.trim()
+    if (trimmed !== syncedText.current) {
+      syncedText.current = trimmed
       filters.setText(debouncedText)
     }
   }, [debouncedText, filters])

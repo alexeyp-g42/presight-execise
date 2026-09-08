@@ -87,3 +87,15 @@ describe('filter drawer', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 })
+
+describe('search box synchronisation', () => {
+  it('keeps a trailing space in the search box', async () => {
+    renderApp()
+    const input = screen.getByRole('searchbox')
+    await userEvent.type(input, 'John ')
+
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
+    expect(input).toHaveValue('John ')
+  })
+})
