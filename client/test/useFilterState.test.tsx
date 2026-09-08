@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { MemoryRouter, useLocation } from 'react-router-dom'
+import { MemoryRouter, useLocation, useNavigationType } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { parseFilterStateFromParams, useFilterState } from '../src/hooks/useFilterState'
 
@@ -13,6 +13,13 @@ function wrapperFor(initialUrl: string) {
 function renderFilterState(initialUrl = '/') {
   return renderHook(
     () => ({ filters: useFilterState(), location: useLocation() }),
+    { wrapper: wrapperFor(initialUrl) },
+  )
+}
+
+function renderWithNavigationType(initialUrl = '/') {
+  return renderHook(
+    () => ({ filters: useFilterState(), navigationType: useNavigationType() }),
     { wrapper: wrapperFor(initialUrl) },
   )
 }
@@ -110,5 +117,26 @@ describe('useFilterState', () => {
       sort: 'age',
       order: 'desc',
     })
+  })
+
+  it('replaces the history entry when the text filter changes', () => {
+    const { result } = renderWithNavigationType()
+    act(() => result.current.filters.setText('ada'))
+
+    expect(result.current.navigationType).toBe('REPLACE')
+  })
+
+  it('pushes a history entry when a hobby is toggled', () => {
+    const { result } = renderWithNavigationType()
+    act(() => result.current.filters.toggleHobby('Chess'))
+
+    expect(result.current.navigationType).toBe('PUSH')
+  })
+
+  it('pushes a history entry when the sort field changes', () => {
+    const { result } = renderWithNavigationType()
+    act(() => result.current.filters.setSort('age'))
+
+    expect(result.current.navigationType).toBe('PUSH')
   })
 })
