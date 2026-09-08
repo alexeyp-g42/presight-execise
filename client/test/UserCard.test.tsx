@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { UserCard } from '../src/components/UserCard'
 import type { User } from '../src/api/types'
@@ -49,5 +49,20 @@ describe('UserCard', () => {
     render(<UserCard user={base} />)
 
     expect(screen.getByAltText('Ada Byron')).toBeInTheDocument()
+  })
+
+  it('falls back to initials when the avatar image fails to load', () => {
+    render(<UserCard user={base} />)
+    fireEvent.error(screen.getByAltText('Ada Byron'))
+
+    expect(screen.queryByAltText('Ada Byron')).not.toBeInTheDocument()
+    expect(screen.getByText('AB')).toBeInTheDocument()
+  })
+
+  it('renders no remainder badge for a single hobby', () => {
+    render(<UserCard user={{ ...base, hobbies: ['Chess'] }} />)
+
+    expect(screen.getByText('Chess')).toBeInTheDocument()
+    expect(screen.queryByText(/^\+/)).not.toBeInTheDocument()
   })
 })
