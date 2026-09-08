@@ -45,11 +45,24 @@ export function toSearchParams(
 
 async function getJson<T>(path: string, params: URLSearchParams, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`${path}?${params.toString()}`, { signal })
-  const body = await response.json()
+  const text = await response.text()
+
+  let body: unknown = null
+  try {
+    body = JSON.parse(text)
+  } catch {
+    body = null
+  }
 
   if (!response.ok) {
-    throw new ApiError(body?.error?.message ?? 'Request failed', response.status)
+    const message = (body as { error?: { message?: string } } | null)?.error?.message
+    throw new ApiError(message ?? `Request failed with status ${response.status}`, response.status)
   }
+
+  if (body === null) {
+    throw new ApiError('Response body was not valid JSON', response.status)
+  }
+
   return body as T
 }
 

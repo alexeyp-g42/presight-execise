@@ -18,8 +18,14 @@ function stubFetch(response: unknown, status = 200) {
   const spy = vi.fn().mockResolvedValue({
     ok: status < 400,
     status,
-    json: async () => response,
+    text: async () => JSON.stringify(response),
   })
+  vi.stubGlobal('fetch', spy)
+  return spy
+}
+
+function stubRawFetch(text: string, status: number) {
+  const spy = vi.fn().mockResolvedValue({ ok: status < 400, status, text: async () => text })
   vi.stubGlobal('fetch', spy)
   return spy
 }
@@ -67,6 +73,21 @@ describe('fetchUsers', () => {
 
   it('throws an ApiError carrying the status on failure', async () => {
     stubFetch({ error: { code: 'INVALID_QUERY', message: 'bad', field: 'sort' } }, 400)
+
+    await expect(fetchUsers(base, null)).rejects.toBeInstanceOf(ApiError)
+  })
+
+  it('surfaces a non-JSON error body as an ApiError carrying the status', async () => {
+    stubRawFetch('<html><body>502 Bad Gateway</body></html>', 502)
+
+    await expect(fetchUsers(base, null)).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 502,
+    })
+  })
+
+  it('surfaces a non-JSON success body as an ApiError', async () => {
+    stubRawFetch('not json at all', 200)
 
     await expect(fetchUsers(base, null)).rejects.toBeInstanceOf(ApiError)
   })
