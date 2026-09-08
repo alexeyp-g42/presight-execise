@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useNavigate } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '../src/App'
 
@@ -88,6 +88,27 @@ describe('filter drawer', () => {
   })
 })
 
+function BackButton() {
+  const navigate = useNavigate()
+  return (
+    <button type="button" onClick={() => navigate(-1)}>
+      Go back
+    </button>
+  )
+}
+
+function renderAppAt(entries: string[], index: number) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={entries} initialIndex={index}>
+        <App />
+        <BackButton />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  )
+}
+
 describe('search box synchronisation', () => {
   it('keeps a trailing space in the search box', async () => {
     renderApp()
@@ -97,5 +118,19 @@ describe('search box synchronisation', () => {
     await new Promise((resolve) => setTimeout(resolve, 500))
 
     expect(input).toHaveValue('John ')
+  })
+
+  it('resyncs the search box to the URL after a back navigation', async () => {
+    const user = userEvent.setup({ delay: null })
+    renderAppAt(['/?q=Bob', '/?q=Bob&nationalities=British'], 1)
+    const input = screen.getByRole('searchbox')
+    expect(input).toHaveValue('Bob')
+
+    await user.type(input, 'by')
+    await user.click(screen.getByRole('button', { name: 'Go back' }))
+
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
+    expect(input).toHaveValue('Bob')
   })
 })

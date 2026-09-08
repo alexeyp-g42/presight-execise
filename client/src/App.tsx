@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigationType } from 'react-router-dom'
 import { ActiveFilters } from './components/ActiveFilters'
 import { FacetSidebar } from './components/FacetSidebar'
 import { SearchInput } from './components/SearchInput'
@@ -11,6 +12,8 @@ import { useUsers } from './hooks/useUsers'
 
 export function App() {
   const filters = useFilterState()
+  const navigationType = useNavigationType()
+  const locationKey = useLocation().key
   const [text, setText] = useState(filters.state.q)
   const debouncedText = useDebouncedValue(text, 300)
   const [isDrawerOpen, setDrawerOpen] = useState(false)
@@ -32,6 +35,13 @@ export function App() {
       setText(filters.state.q)
     }
   }, [filters.state.q])
+
+  useEffect(() => {
+    if (navigationType === 'POP') {
+      syncedText.current = filters.state.q
+      setText(filters.state.q)
+    }
+  }, [navigationType, locationKey, filters.state.q])
 
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false)
