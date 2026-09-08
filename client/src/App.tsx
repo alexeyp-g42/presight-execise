@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActiveFilters } from './components/ActiveFilters'
 import { FacetSidebar } from './components/FacetSidebar'
 import { SearchInput } from './components/SearchInput'
@@ -15,6 +15,8 @@ export function App() {
   const debouncedText = useDebouncedValue(text, 300)
   const [isDrawerOpen, setDrawerOpen] = useState(false)
   const syncedText = useRef(filters.state.q)
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const filtersButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (debouncedText !== syncedText.current) {
@@ -29,6 +31,25 @@ export function App() {
       setText(filters.state.q)
     }
   }, [filters.state.q])
+
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false)
+    filtersButtonRef.current?.focus()
+  }, [])
+
+  useEffect(() => {
+    if (!isDrawerOpen) {
+      return
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeDrawer()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    drawerRef.current?.focus()
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [isDrawerOpen, closeDrawer])
 
   const usersQuery = useUsers(filters.state)
   const facetsQuery = useFacets(filters.state)
@@ -62,6 +83,8 @@ export function App() {
         />
         <button
           type="button"
+          ref={filtersButtonRef}
+          aria-expanded={isDrawerOpen}
           onClick={() => setDrawerOpen(true)}
           className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm lg:hidden"
         >
@@ -93,10 +116,19 @@ export function App() {
           <button
             type="button"
             aria-label="Close filters"
-            onClick={() => setDrawerOpen(false)}
+            onClick={closeDrawer}
             className="flex-1 bg-slate-900/40"
           />
-          <div className="w-72 overflow-y-auto bg-white">{sidebar}</div>
+          <div
+            ref={drawerRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Filters"
+            className="w-72 overflow-y-auto bg-white outline-none"
+          >
+            {sidebar}
+          </div>
         </div>
       )}
     </div>
