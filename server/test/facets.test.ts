@@ -43,10 +43,27 @@ describe('queryFacets', () => {
     ])
   })
 
-  it('counts facets over the fully filtered set including the selected nationality', () => {
+  it('lists every nationality regardless of the nationality filter', () => {
     const facets = facetsFor({ nationalities: ['Austrian'] })
 
-    expect(facets.nationalities).toEqual([{ value: 'Austrian', count: 1 }])
+    expect(facets.nationalities).toEqual([
+      { value: 'American', count: 4 },
+      { value: 'British', count: 3 },
+      { value: 'Austrian', count: 1 },
+    ])
+    expect(facets.total).toBe(1)
+    expect(facets.hobbies).toEqual([
+      { value: 'Astronomy', count: 1 },
+      { value: 'Chess', count: 1 },
+    ])
+  })
+
+  it('scopes the nationality facet to the text filter but not to the nationality filter', () => {
+    const facets = facetsFor({ q: 'ad', nationalities: ['American'] })
+
+    expect(facets.total).toBe(0)
+    expect(facets.nationalities).toEqual([{ value: 'British', count: 2 }])
+    expect(facets.hobbies).toEqual([])
   })
 
   it('counts facets over the fully filtered set including the selected hobbies', () => {

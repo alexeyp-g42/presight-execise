@@ -121,31 +121,30 @@ Pass `nextCursor` back as `cursor` to fetch the following page; `hasMore: false`
 
 ### `GET /api/facets`
 
-Returns the total matching the current filters, plus the top 20 hobbies and top 20 nationalities among those results, each with a count.
+Returns the total matching the current filters, plus the top 20 hobbies and top 20 nationalities, each with a count. Hobby counts are taken over the filtered results; nationality counts ignore the nationality selection itself, so more than one nationality stays selectable.
 
 ```
-GET /api/facets?q=an&nationalities=American&hobbies=Reading
+GET /api/facets?q=Dene&nationalities=American&hobbies=Reading
 ```
 
 ```json
 {
   "total": 1,
   "hobbies": [
-    { "value": "Dancing", "count": 1 },
-    { "value": "Embroidery", "count": 1 },
-    { "value": "Jewelry Making", "count": 1 },
     { "value": "Journaling", "count": 1 },
-    { "value": "Judo", "count": 1 },
-    { "value": "Model Building", "count": 1 },
-    { "value": "Reading", "count": 1 },
-    { "value": "Running", "count": 1 },
-    { "value": "Surfing", "count": 1 }
+    { "value": "Reading", "count": 1 }
   ],
-  "nationalities": [{ "value": "American", "count": 1 }]
+  "nationalities": [
+    { "value": "American", "count": 1 },
+    { "value": "Austrian", "count": 1 },
+    { "value": "Norwegian", "count": 1 },
+    { "value": "Peruvian", "count": 1 },
+    { "value": "Swiss", "count": 1 }
+  ]
 }
 ```
 
-This example is deliberately narrow (one matching user) to show a case mentioned under [Facet counting](#facet-counting) below: once a filter is the only thing distinguishing the result set, its own facet group collapses to a single row.
+This example is deliberately narrow (one matching user) to show the asymmetry described under [Facet counting](#facet-counting) below: the hobby list has collapsed to the two hobbies of the single matching user, while the nationality list still offers the four other nationalities that `q=Dene` plus `hobbies=Reading` would match.
 
 ## Design decisions
 
@@ -200,7 +199,11 @@ $ node -e "
 
 ### Facet counting
 
-Facet counts reflect the fully filtered result set, per the exercise's requirement, not the whole dataset. One consequence: once nationality is the only thing narrowing the results (e.g. a single hobby plus one nationality selected), the nationality facet list collapses to the one selected value — there's nothing left to offer as an alternative. Because a collapsed facet list can no longer be used to remove that filter, a row of removable filter chips (`ActiveFilters`) sits above the results list at all times, independent of what the sidebar currently shows, so every active filter stays removable no matter how narrow the result set gets.
+Facet counts reflect the filtered result set, per the exercise's requirement, not the whole dataset — with one deliberate exception. The nationality facet is counted over a result set built from every filter *except* the nationality selection, so the other nationalities remain visible and clickable. Counting it over the fully filtered set would collapse the list to the one selected value after a single click, and the exercise's "filter by one or more nationalities" (an OR across nationalities) would be unreachable from the UI.
+
+Hobbies keep the fully-filtered counts on purpose. Hobby selection is AND — a user must have all the selected hobbies — so the useful list is the hobbies that *co-occur* with the current selection, and each count tells you how many of the current results would remain. Excluding the hobby selection there would offer options that mostly narrow to zero.
+
+Either way a facet list can end up too narrow to remove a filter with, so a row of removable filter chips (`ActiveFilters`) sits above the results list at all times, independent of what the sidebar currently shows, and every active filter stays removable no matter how narrow the result set gets.
 
 ## Known limitations
 

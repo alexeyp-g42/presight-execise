@@ -25,16 +25,21 @@ export function queryFacets(db: Db, state: FilterState): Facets {
     .prepare(`${filtered} SELECT COUNT(*) AS total FROM filtered`)
     .get(predicate.params) as { total: number }
 
+  const withoutNationality = buildFilterPredicate({ ...state, nationalities: [] })
+  const nationalityScope = `WITH scoped AS (
+    SELECT u.nationality AS nationality FROM users u WHERE ${withoutNationality.sql}
+  )`
+
   const nationalities = db
     .prepare(
-      `${filtered}
+      `${nationalityScope}
        SELECT nationality AS value, COUNT(*) AS count
-       FROM filtered
+       FROM scoped
        GROUP BY nationality
        ORDER BY count DESC, value ASC
        LIMIT ${FACET_LIMIT}`,
     )
-    .all(predicate.params) as FacetValue[]
+    .all(withoutNationality.params) as FacetValue[]
 
   const hobbies = db
     .prepare(
