@@ -109,6 +109,12 @@ export function App() {
         </aside>
 
         <main className="flex min-w-0 flex-1 flex-col pt-2">
+          {facetsQuery.data && (
+            <p className="px-4 pb-2 text-sm text-slate-500">
+              {facetsQuery.data.total.toLocaleString()}{' '}
+              {facetsQuery.data.total === 1 ? 'user' : 'users'}
+            </p>
+          )}
           <ActiveFilters
             hobbies={filters.state.hobbies}
             nationalities={filters.state.nationalities}

@@ -48,9 +48,6 @@ export function FacetSidebar({
 
   return (
     <div className="flex flex-col gap-6 p-4">
-      <p className="text-sm text-slate-500">
-        {facets.total.toLocaleString()} {facets.total === 1 ? 'user' : 'users'}
-      </p>
       <FacetGroup
         title="Nationalities"
         values={facets.nationalities}

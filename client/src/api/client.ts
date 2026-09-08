@@ -5,6 +5,8 @@ import {
   type UserPage,
 } from './types'
 
+const PAGE_SIZE = 30
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -71,7 +73,7 @@ export function fetchUsers(
   cursor: string | null,
   signal?: AbortSignal,
 ): Promise<UserPage> {
-  const extra: Record<string, string> = { limit: '30' }
+  const extra: Record<string, string> = { limit: String(PAGE_SIZE) }
   if (cursor !== null) {
     extra.cursor = cursor
   }
