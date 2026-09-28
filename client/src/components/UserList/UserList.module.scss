@@ -1,0 +1,79 @@
+@use "@/styles/variables" as *;
+@use "@/styles/mixins" as *;
+@use "@/styles/animations";
+
+$gap: $space-4;
+
+.container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.summary {
+  padding: 0 $space-1 $space-3;
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+
+  strong {
+    @include mono-number;
+    @include gradient-text;
+    font-size: 1.375rem;
+    line-height: 1;
+    color: $color-text;
+  }
+}
+
+.scroller {
+  @include thin-scrollbar;
+  flex: 1;
+  min-height: 0;
+  margin: 0 (-$space-2);
+  padding: $space-1 $space-2 $space-4;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.inner {
+  position: relative;
+  width: 100%;
+}
+
+.row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  gap: $gap;
+  width: 100%;
+  padding-bottom: $gap;
+}
+
+.footer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  padding-top: $space-4;
+}
+
+.spinner {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2.5px solid $color-border;
+  border-top-color: $color-accent;
+  box-shadow: 0 0 20px $color-accent-glow;
+  border-radius: $radius-full;
+  animation: spin 0.7s linear infinite;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  grid-auto-rows: 120px;
+  gap: $gap;
+}

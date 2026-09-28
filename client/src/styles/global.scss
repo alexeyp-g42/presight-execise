@@ -1,0 +1,62 @@
+@use "variables" as *;
+@use "theme";
+
+:root {
+  @include theme.dark;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: $font-body;
+  font-size: $font-size-md;
+  line-height: 1.5;
+  color: $color-text;
+  background:
+    radial-gradient(50rem 28rem at 15% -15%, var(--glow-primary), transparent 65%),
+    radial-gradient(40rem 24rem at 95% -10%, var(--glow-secondary), transparent 65%),
+    radial-gradient(var(--grid-dot) 1px, transparent 1px) 0 0 / 22px 22px,
+    $color-bg;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  color: $color-accent-contrast;
+  background: $color-accent;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+select option {
+  color: $color-text;
+  background: $color-surface-raised;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}

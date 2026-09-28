@@ -1,0 +1,40 @@
+@use "@/styles/variables" as *;
+
+.avatar {
+  flex-shrink: 0;
+  width: 3.75rem;
+  height: 3.75rem;
+  padding: 3px;
+  border-radius: $radius-full;
+  background: conic-gradient(
+    from 200deg,
+    hsl(var(--hue) 80% var(--ring-lightness)),
+    hsl(calc(var(--hue) + 60) 80% var(--ring-lightness)),
+    hsl(var(--hue) 80% var(--ring-lightness))
+  );
+}
+
+%fill {
+  width: 100%;
+  height: 100%;
+  border: 2px solid $color-bg;
+  border-radius: $radius-full;
+}
+
+.image {
+  @extend %fill;
+  display: block;
+  object-fit: cover;
+  background: $color-skeleton;
+}
+
+.initials {
+  @extend %fill;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  font-weight: 700;
+  color: hsl(var(--hue) var(--pill-fg-saturation) var(--pill-fg-lightness));
+  background: hsl(var(--hue) var(--pill-bg-saturation) var(--pill-bg-lightness));
+}

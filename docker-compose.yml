@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${APP_PORT:-3001}:3001"
+    environment:
+      SEED_COUNT: 20000
+    volumes:
+      - users-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  users-data:

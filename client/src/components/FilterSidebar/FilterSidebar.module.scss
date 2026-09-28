@@ -1,0 +1,100 @@
+@use "@/styles/variables" as *;
+@use "@/styles/mixins" as *;
+@use "@/styles/animations";
+
+.sidebar {
+  @include panel;
+  @include thin-scrollbar;
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+  min-height: 0;
+  padding: $space-5 $space-4;
+  overflow-y: auto;
+
+  @include down(md) {
+    position: fixed;
+    inset: $space-2 auto $space-2 $space-2;
+    z-index: 20;
+    width: min(21rem, calc(100vw - 3rem));
+    box-shadow: $shadow-lg;
+    transform: translateX(calc(-100% - #{$space-4}));
+    visibility: hidden;
+    transition:
+      transform 0.35s $ease-out,
+      visibility 0.35s;
+  }
+}
+
+.open {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.backdrop {
+  display: none;
+
+  @include down(md) {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: block;
+    background: $color-overlay;
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+}
+
+.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 $space-1;
+
+  @include up(md) {
+    display: none;
+  }
+}
+
+.mobile-title {
+  @include display;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+  transition: opacity 0.2s ease;
+}
+
+.stale {
+  opacity: 0.55;
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.skeleton-row {
+  @include skeleton($color-skeleton-light);
+  height: 2rem;
+  border-radius: $radius-sm;
+
+  &:first-child {
+    width: 50%;
+    height: 1.5rem;
+    margin-bottom: $space-2;
+    background: $color-skeleton;
+  }
+}
