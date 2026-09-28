@@ -1,6 +1,7 @@
 {
   "name": "presight-execise",
   "version": "1.0.0",
+  "private": true,
   "repository": "",
   "author": "",
   "license": "MIT",
@@ -9,9 +10,14 @@
     "server"
   ],
   "scripts": {
-    "start": "lerna run start"
+    "start": "lerna run start --stream --parallel",
+    "build": "lerna run build --stream",
+    "seed": "yarn --cwd server seed",
+    "test": "lerna run test --stream",
+    "format": "prettier --write \"client/src/**/*.{ts,tsx,scss}\" \"server/{src,test}/**/*.ts\""
   },
   "devDependencies": {
-    "lerna": "~8.2.1"
+    "lerna": "~8.2.1",
+    "prettier": "~3.5.3"
   }
 }

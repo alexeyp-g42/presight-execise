@@ -29,3 +29,5 @@ yarn-error.log*
 
 .parcel-cache
 .idea/
+# sqlite
+server/data/

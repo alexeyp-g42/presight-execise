@@ -117,3 +117,121 @@ Please provide:
 - A `Dockerfile` and `docker-compose.yml`.
 - Instructions for setup, database seeding, and running locally.
 - Instructions for running with Docker Compose.
+
+---
+
+## Solution
+
+### Stack
+
+- **Server** — Node.js, Express 5, TypeScript, SQLite via [better-sqlite3](https://github.com/WiseLibs/better-sqlite3), Faker for seed data
+- **Client** — React 19, TypeScript, Vite, SCSS modules, TanStack Query, TanStack Virtual, React Router
+- **Tooling** — Yarn workspaces + Lerna, Vitest, Supertest, ESLint, Prettier
+- **Infrastructure** — Docker, Docker Compose
+
+### Project layout
+
+```text
+server/
+  src/
+    app.ts        Express app and routes
+    db.ts         SQLite connection and schema
+    query.ts      Query string validation
+    users.ts      Listing, cursor pagination and facet queries
+    seeder.ts     Deterministic fake data generator
+    seed.ts       Seed CLI
+  test/           API tests (in-memory SQLite)
+client/
+  src/
+    api/          HTTP client
+    components/   UI components, one folder each with its SCSS module
+    hooks/        URL state, data fetching, layout helpers
+    styles/       SCSS variables, mixins, global styles
+    types/        Shared types
+    utils/        URL state serialization, flags, colour helpers
+```
+
+### Data model
+
+```text
+users(id, avatar, first_name, last_name, age, nationality)
+user_nationalities(user_id, nationality, is_primary)
+hobbies(id, name)
+user_hobbies(user_id, hobby_id)
+```
+
+About 15% of users have two nationalities. Every nationality is stored in `user_nationalities`, and `users.nationality` holds the primary one, which is what sorting uses. Hobbies live in a join table, so "has all selected hobbies" filters and hobby counts are plain indexed SQL. Ages range from 0 to 100, weighted towards working age. Every sortable column has a composite `(column, id)` index.
+
+### API
+
+`GET /api/users`
+
+| Param         | Description                                                    |
+| ------------- | -------------------------------------------------------------- |
+| `search`      | Text matched against `first_name` and `last_name`              |
+| `nationality` | Repeatable, matches users holding **any** selected nationality |
+| `hobby`       | Repeatable, matches users with **all** selected hobbies        |
+| `sort`        | `first_name` (default), `last_name`, `age`, `nationality`      |
+| `order`       | `asc` (default) or `desc`                                      |
+| `limit`       | Page size, 1–100 (default 30)                                  |
+| `cursor`      | `nextCursor` from the previous page                            |
+
+```json
+{ "data": [{ "id": 1, "nationality": "German", "nationalities": ["German", "Turkish"], ... }], "total": 1438, "hasMore": true, "nextCursor": "WzgwLDE4NjkzXQ" }
+```
+
+Pagination is keyset based on `(sort column, id)`, so pages never overlap or skip users regardless of the active sort. Every search term must match either the first or the last name, so `ann lee` finds "Anna Lee".
+
+`GET /api/users/facets` accepts the same `search`, `nationality` and `hobby` params and returns the top 20 of each:
+
+```json
+{ "hobbies": [{ "value": "Reading", "count": 403 }], "nationalities": [{ "value": "German", "count": 812 }] }
+```
+
+Both lists are counted over the current result set, so they apply the search and every selected nationality and hobby. A user with two nationalities is counted under both.
+
+Invalid params return `400` with `{ "error": "..." }`.
+
+### Client
+
+- Search, filters, sort field and direction live in the URL (`?q=ann&nationality=German&hobby=Chess&sort=age&order=desc`), so reloading or sharing a link restores the view. Typing replaces the history entry, while filter and sort changes push one so Back works.
+- The list is virtualized by rows, and the column count adapts to the list width. The next page is fetched as you scroll near the end.
+- Changing the search or filters refetches both the list and the sidebar counts.
+- Loading skeletons, empty results, request errors with retry, and inline retry for a failed next page are all handled.
+- Below 900px the sidebar becomes a slide-in drawer.
+
+### Running locally
+
+Requirements: Node.js 20.17+ and Yarn 1.
+
+```bash
+yarn install
+yarn seed          # optional, creates server/data/users.db with 20,000 users
+yarn start         # API on http://localhost:3001, client on http://localhost:5173
+```
+
+The server seeds an empty database automatically on first start. To reseed with a different size, run `yarn --cwd server seed 50000`.
+
+| Variable     | Default                 | Description                         |
+| ------------ | ----------------------- | ----------------------------------- |
+| `PORT`       | `3001`                  | API port                            |
+| `DB_PATH`    | `server/data/users.db`  | SQLite file                         |
+| `SEED_COUNT` | `20000`                 | Users created when the DB is empty  |
+| `STATIC_DIR` |                         | Serve a built client from this path |
+| `API_URL`    | `http://localhost:3001` | Vite dev proxy target               |
+
+Other scripts:
+
+```bash
+yarn test                     # server and client tests
+yarn build                    # production builds
+yarn --cwd client lint
+```
+
+### Running with Docker Compose
+
+```bash
+docker compose up --build
+```
+
+Open http://localhost:3001. One container serves both the API and the built client. If port 3001 is busy (for example, the local dev server is running), pick another one with `APP_PORT=3080 docker compose up --build`. The database lives in the `users-data` volume and is seeded on first start. Run `docker compose down -v` to reset it.

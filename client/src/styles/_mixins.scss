@@ -1,0 +1,116 @@
+@use "sass:map";
+@use "variables" as *;
+
+@mixin up($breakpoint) {
+  @media (min-width: map.get($breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+
+@mixin down($breakpoint) {
+  @media (max-width: map.get($breakpoints, $breakpoint) - 1px) {
+    @content;
+  }
+}
+
+@mixin focus-ring {
+  outline: none;
+  border-color: $color-accent;
+  box-shadow: 0 0 0 4px $color-accent-soft;
+}
+
+@mixin control {
+  height: 2.75rem;
+  border: 1px solid $color-border;
+  border-radius: $radius-full;
+  background: $color-surface-raised;
+  box-shadow: $shadow-sm;
+  font: inherit;
+  font-size: $font-size-sm;
+  color: $color-text;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+
+  &:hover {
+    border-color: $color-border-strong;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+@mixin display {
+  font-family: $font-body;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+@mixin mono-number {
+  font-family: $font-mono;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+@mixin gradient-text {
+  color: transparent;
+  background: $gradient-accent;
+  background-clip: text;
+}
+
+@mixin truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@mixin pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: 500;
+  line-height: 1.375rem;
+}
+
+@mixin hue-pill {
+  @include pill;
+  color: hsl(var(--hue) var(--pill-fg-saturation) var(--pill-fg-lightness));
+  background: hsl(var(--hue) var(--pill-bg-saturation) var(--pill-bg-lightness));
+}
+
+@mixin panel {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    $shadow-sm;
+  backdrop-filter: blur(16px);
+}
+
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@mixin skeleton($color: $color-skeleton) {
+  background: $color;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@mixin thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: $color-border-strong transparent;
+}
