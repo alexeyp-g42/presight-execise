@@ -1,4 +1,3 @@
-import users from "../data/users.js";
 
 const collator = new Intl.Collator("en", {
     sensitivity: "base",

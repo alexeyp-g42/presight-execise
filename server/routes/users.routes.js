@@ -47,46 +47,4 @@ function readInteger(value, name, defaultValue, min, max) {
     return number;
 }
 
-// GET /api/users
-router.get("/", (req, res) => {
-    try{
-        const searchText = readString(req.query.search, "search", "");
-        const nationalities = readList(req.query.nationalities, "nationalities");
-        const hobbies = readList(req.query.hobbies, "hobbies");
-        const sortBy = readString(req.query.sortBy, "sortBy", "first_name");
-        const sortDirection = readString(req.query.sortDirection, "sortDirection", "asc").toLowerCase();
-        const limit = readInteger(req.query.limit, "limit", 20, 1, 100);
-        const offset = readInteger(req.query.offset, "offset", 0, 0, Number.MAX_SAFE_INTEGER);
-
-        if (!ALLOWED_SORT_FIELDS.has(sortBy)) {
-            return res.status(400).json({
-                error: "INVALID_SORT_FIELD",
-                message: `Unsupported sort field ${sortBy}`
-            });
-        }
-
-        if (!ALLOWED_DIRECTIONS.has(sortDirection)) {
-            return res.status(400).json({
-                error: "INVALID_SORT_DIRECTION",
-                message: "Direction must be asc or desc"
-            });
-        }
-        const result = getUsers({
-            searchText,
-            nationalities,
-            hobbies,
-            sortBy,
-            sortDirection,
-            limit,
-            offset
-        });
-        return res.status(200).json(result);
-    } catch (error) {
-        return res.status(400).json({
-            error: "INVALID_QUERY",
-            message: error.message
-        });
-    }
-});
-
 export default router;

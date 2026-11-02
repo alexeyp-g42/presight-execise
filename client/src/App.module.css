@@ -46,20 +46,6 @@
     }
 }
 
-
-.container {
-    min-height: 100vh;
-    padding: 24px;
-    background-color: #f3f4f6;
-}
-
-.title {
-    margin: 0 0 24px;
-    font-size: 28px;
-    font-weight: 700;
-    color: #1d4ed8;
-}
-
 .layout {
     display: grid;
     grid-template-columns: 280px minmax(0, 1fr);
@@ -76,12 +62,6 @@
     font-size: 18px;
     font-weight: 600;
     color: #111827;
-}
-
-.userGrid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
 }
 
 .emptyState {
