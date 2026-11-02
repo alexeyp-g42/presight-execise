@@ -9,7 +9,7 @@ COPY package.json package-lock.json ./
 COPY client/package.json ./client/
 COPY server/package.json ./server/
 
-RUN npm ci
+RUN npm ci --workspace=client --include-workspace-root=false
 
 # Copy frontend source
 COPY client/ ./client/
