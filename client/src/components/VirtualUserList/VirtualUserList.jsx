@@ -17,10 +17,6 @@ export default function VirtualUserList({
 
     const scrollRef = useRef(null);
 
-    // const [loadedCount, setLoadedCount] = useState(PAGE_SIZE);
-    // const loadedUsers = users.slice(0, loadedCount);
-    // const hasMore = loadedUsers.length < users.length;
-
     const virtualizer = useVirtualizer({
         count: users.length + (hasMore ? 1 : 0),
         getScrollElement: () => scrollRef.current,
@@ -61,25 +57,6 @@ export default function VirtualUserList({
         loadMoreError,
         onLoadMore,
     ]);
-
-    // useEffect(() => {
-    //     virtualizer.scrollToOffset(0);
-    //     virtualizer.measure();
-    // }, [users, virtualizer]);
-
-    // console.log(
-    //     "Total users:", users.length,
-    //     "Rendered rows:", virtualizer.getVirtualItems().length
-    // );
-
-    // function handleScroll(event) {
-    //     const element = event.currentTarget;
-    //     const distanceFromBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
-
-    //     if (distanceFromBottom <= SCROLL_THRESHOLD && hasMore) {
-    //         setLoadedCount((previous) => Math.min(previous + PAGE_SIZE, users.length));
-    //     }
-    // }
 
     return (
         <div className={styles.container}>
@@ -136,14 +113,6 @@ export default function VirtualUserList({
                     </button>
             </div>
         )}
-
-            {/* <div className={styles.footer}>
-                Showing {loadedUsers.length} of {users.length} users
-
-                {!hasMore && (
-                    <p>All users loaded</p>
-                )}
-            </div> */}
         </div>
     );
 }

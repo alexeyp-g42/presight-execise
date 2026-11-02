@@ -6,20 +6,6 @@ export default function FilterGroup({
     selectedValues = [],
     onToggle,
 }) {
-    // const keys = options.map((option) => option.value);
-
-    // console.log(`${title} options:`, options);
-    // console.log(`${title} keys:`, keys);
-
-    // console.log(
-    //     `${title} missing keys:`,
-    //     keys.filter((key) => key == null)
-    // );
-
-    // console.log(
-    //     `${title} duplicate keys:`,
-    //     keys.filter((key, index) => keys.indexOf(key) !== index)
-    // );
     return (
         <section className={styles.filterGroup}>
             <div className={styles.groupHeader}>
