@@ -1,52 +1,132 @@
 
+/* ======================================
+   SORT CONTROLS
+====================================== */
+
 .container {
     display: flex;
     align-items: center;
     justify-content: flex-end;
     flex-wrap: wrap;
+
     gap: 16px;
+    min-width: 0;
 }
+
+/* ======================================
+   INDIVIDUAL SORT CONTROL
+====================================== */
 
 .control {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
 }
 
 .control label {
+    flex-shrink: 0;
+
     font-size: 13px;
     font-weight: 500;
+    line-height: 1.4;
     color: #374151;
 }
 
+/* ======================================
+   SELECT DROPDOWN
+====================================== */
+
 .select {
+    min-width: 0;
+    max-width: 100%;
+    min-height: 40px;
+
     padding: 9px 12px;
+
     border: 1px solid #d1d5db;
     border-radius: 8px;
-    background-color: white;
+
+    background-color: #ffffff;
     color: #111827;
+
     font-size: 13px;
+    line-height: 1.4;
+
     cursor: pointer;
+    box-sizing: border-box;
+}
+
+.select:hover {
+    border-color: #9ca3af;
 }
 
 .select:focus {
+    border-color: #2563eb;
     outline: 2px solid #93c5fd;
     outline-offset: 1px;
 }
 
-@media (max-width: 640px) {
+/* ======================================
+   TABLET
+====================================== */
+
+@media (max-width: 1024px) {
     .container {
         justify-content: flex-start;
         gap: 12px;
     }
 
     .control {
-        flex: 1;
+        flex-wrap: wrap;
+    }
+}
+
+/* ======================================
+   MOBILE
+====================================== */
+
+@media (max-width: 640px) {
+    .container {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+
+        width: 100%;
+        gap: 12px;
+    }
+
+    .control {
+        display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
+
+        width: 100%;
+        gap: 6px;
+    }
+
+    .control label {
+        font-size: 13px;
     }
 
     .select {
         width: 100%;
+        min-height: 44px;
+
+        /* Prevent iOS Safari input zoom */
+        font-size: 16px;
+    }
+}
+
+/* ======================================
+   SMALL MOBILE
+====================================== */
+
+@media (max-width: 360px) {
+    .container {
+        gap: 10px;
+    }
+
+    .select {
+        padding: 10px;
     }
 }

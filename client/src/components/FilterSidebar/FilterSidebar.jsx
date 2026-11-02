@@ -25,7 +25,7 @@ export default function FilterSidebar({
                 </button>
             </div>
             {hasActiveFilters && (
-                <div className={styles.selectFilters}>
+                <div className={styles.selectedFilters}>
                     {selectedNationalities.map((nationality) => (
                         <button
                             type="button"

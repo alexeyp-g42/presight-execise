@@ -1,18 +1,28 @@
 
+/* ======================================
+   FILTER SIDEBAR
+====================================== */
+
 .sidebar {
     width: 100%;
     min-width: 0;
+    box-sizing: border-box;
+
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     padding: 20px;
-    box-sizing: border-box;
 }
+
+/* ======================================
+   SIDEBAR HEADER
+====================================== */
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 16px;
 }
@@ -21,6 +31,7 @@
     margin: 0;
     font-size: 18px;
     font-weight: 600;
+    line-height: 1.4;
     color: #111827;
 }
 
@@ -29,7 +40,15 @@
     background: none;
     color: #2563eb;
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
+    padding: 6px 4px;
+    white-space: nowrap;
+}
+
+.clearButton:hover:not(:disabled) {
+    color: #1d4ed8;
+    text-decoration: underline;
 }
 
 .clearButton:disabled {
@@ -37,22 +56,42 @@
     cursor: not-allowed;
 }
 
-/* Selected filter chips */
+.clearButton:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+/* ======================================
+   SELECTED FILTER CHIPS
+====================================== */
 
 .selectedFilters {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 20px;
+    min-width: 0;
 }
 
 .chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+
+    max-width: 100%;
+    min-height: 32px;
+    padding: 6px 10px;
+
     background: #eff6ff;
     color: #1d4ed8;
     border: 1px solid #bfdbfe;
     border-radius: 999px;
-    padding: 5px 10px;
+
     font-size: 12px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
     cursor: pointer;
 }
 
@@ -60,18 +99,27 @@
     background: #dbeafe;
 }
 
-/* Filter groups */
+.chip:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+/* ======================================
+   FILTER GROUPS
+====================================== */
 
 .filterGroup {
     border-top: 1px solid #e5e7eb;
     padding-top: 16px;
     margin-top: 16px;
+    min-width: 0;
 }
 
 .groupHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
     margin-bottom: 12px;
 }
 
@@ -79,55 +127,98 @@
     margin: 0;
     font-size: 14px;
     font-weight: 600;
+    line-height: 1.4;
     color: #374151;
 }
 
 .groupCount {
+    flex-shrink: 0;
     font-size: 12px;
     color: #9ca3af;
 }
 
+/* ======================================
+   FILTER OPTIONS LIST
+====================================== */
+
 .optionList {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 4px;
+
     max-height: 280px;
     overflow-y: auto;
+    overflow-x: hidden;
+
+    padding-right: 4px;
+    overscroll-behavior: contain;
 }
 
 .filterOption {
     display: flex;
     align-items: center;
     gap: 10px;
+
+    min-height: 36px;
+    padding: 6px 4px;
+
+    border-radius: 6px;
     cursor: pointer;
 }
 
+.filterOption:hover {
+    background: #f9fafb;
+}
+
+.filterOption:focus-within {
+    background: #eff6ff;
+}
+
 .checkbox {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
+    margin: 0;
     accent-color: #2563eb;
     flex-shrink: 0;
+    cursor: pointer;
+}
+
+.checkbox:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 3px;
 }
 
 .optionName {
     flex: 1;
     min-width: 0;
+
     font-size: 14px;
+    line-height: 1.5;
     color: #374151;
     overflow-wrap: anywhere;
 }
 
 .optionCount {
+    flex-shrink: 0;
+
     font-size: 12px;
     color: #6b7280;
+    font-variant-numeric: tabular-nums;
 }
+
+/* ======================================
+   EMPTY STATE
+====================================== */
 
 .empty {
     font-size: 13px;
+    line-height: 1.5;
     color: #9ca3af;
 }
 
-/* Responsive */
+/* ======================================
+   TABLET - 768px AND BELOW
+====================================== */
 
 @media (max-width: 768px) {
     .sidebar {
@@ -136,5 +227,78 @@
 
     .optionList {
         max-height: 200px;
+    }
+
+    .filterOption {
+        min-height: 40px;
+    }
+}
+
+/* ======================================
+   MOBILE - 640px AND BELOW
+====================================== */
+
+@media (max-width: 640px) {
+    .sidebar {
+        padding: 16px;
+        border-radius: 10px;
+    }
+
+    .header {
+        margin-bottom: 12px;
+    }
+
+    .title {
+        font-size: 17px;
+    }
+
+    .filterGroup {
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+
+    .optionList {
+        max-height: 180px;
+        gap: 2px;
+    }
+
+    .filterOption {
+        min-height: 44px;
+        padding: 8px 4px;
+    }
+
+    .checkbox {
+        width: 20px;
+        height: 20px;
+    }
+
+    .optionName {
+        font-size: 14px;
+    }
+
+    .chip {
+        min-height: 36px;
+    }
+}
+
+/* ======================================
+   SMALL MOBILE - 360px AND BELOW
+====================================== */
+
+@media (max-width: 360px) {
+    .sidebar {
+        padding: 12px;
+    }
+
+    .header {
+        gap: 8px;
+    }
+
+    .title {
+        font-size: 16px;
+    }
+
+    .groupTitle {
+        font-size: 13px;
     }
 }
