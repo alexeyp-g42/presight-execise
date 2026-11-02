@@ -8,24 +8,35 @@ import UserListState from "./components/UserListState/UserListState";
 import VirtualUserList from "./components/VirtualUserList/VirtualUserList";
 
 import { fetchUsers } from "./services/userApi";
+import useUrlFilters from "./hooks/useUrlFilters";
+
 import styles from "./App.module.css";
+
 
 const PAGE_SIZE = 20;
 
 export default function App() {
-    // Filters
-    const [selectedNationalities, setSelectedNationalities] =
-        useState([]);
-    const [selectedHobbies, setSelectedHobbies] =
-        useState([]);
+    const {
+        filters,
+        searchText,
+        updateSearch,
+        updateFilters,
+        toggleNationality,
+        toggleHobby,
+        clearFilters,
+        clearAllFilters,
+    } = useUrlFilters();
 
-    // Search
-    const [searchText, setSearchText] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    // Derive application state from URL
+    const selectedNationalities = filters.nationalities;
+    const selectedHobbies = filters.hobbies;
 
-    // Sorting
-    const [sortField, setSortField] = useState("first_name");
-    const [sortDirection, setSortDirection] = useState("asc");
+    const sortField = filters.sortBy;
+    const sortDirection = filters.sortDirection;
+
+    // Search value used in API requests
+    const debouncedSearch = filters.search;
+
 
     // API data
     const [users, setUsers] = useState([]);
@@ -49,15 +60,6 @@ export default function App() {
 
     // Identify the current search/filter request generation
     const requestGeneration = useRef(0);
-
-    // Debounce search input
-    useEffect(() => {
-        const timeout = setTimeout(() => {
-            setDebouncedSearch(searchText);
-        }, 300);
-
-        return () => clearTimeout(timeout);
-    }, [searchText]);
 
     // Load the FIRST page whenever search,
     // filters, sorting, or retry changes
@@ -223,33 +225,6 @@ export default function App() {
         sortDirection,
     ]);
 
-    function toggleNationality(value) {
-        setSelectedNationalities((previous) =>
-            previous.includes(value)
-                ? previous.filter((item) => item !== value)
-                : [...previous, value]
-        );
-    }
-
-    function toggleHobby(value) {
-        setSelectedHobbies((previous) =>
-            previous.includes(value)
-                ? previous.filter((item) => item !== value)
-                : [...previous, value]
-        );
-    }
-
-    function clearFilters() {
-        setSelectedNationalities([]);
-        setSelectedHobbies([]);
-    }
-
-    function clearAllFilters() {
-        clearFilters();
-        setSearchText("");
-        setDebouncedSearch("");
-    }
-
     function retryLoading() {
         setRetryCount((previous) => previous + 1);
     }
@@ -262,7 +237,7 @@ export default function App() {
 
             <SearchBar
                 value={searchText}
-                onChange={setSearchText}
+                onChange={updateSearch}
             />
 
             <div className={styles.layout}>
@@ -286,8 +261,8 @@ export default function App() {
                         <SortControls
                             sortField={sortField}
                             sortDirection={sortDirection}
-                            onSortFieldChange={setSortField}
-                            onSortDirectionChange={setSortDirection}
+                            onSortFieldChange={(value) => updateFilters({ sortBy: value })}
+                            onSortDirectionChange={(value) => updateFilters({ sortDirection: value })}
                         />
                     </div>
 
