@@ -65,33 +65,88 @@ function buildWhere({
     };
 }
 
+
 function getFacets(where, params) {
-    const nationalities = db.prepare(`
+
+    // Step 1: Fetch all available nationalities
+    const allNationalities = db.prepare(`
+        SELECT DISTINCT nationality AS name
+        FROM users
+        ORDER BY name ASC
+    `).all();
+
+    // Step 2: Fetch all available hobbies
+    const allHobbies = db.prepare(`
+        SELECT name
+        FROM hobbies
+        ORDER BY name ASC
+    `).all();
+
+    // Step 3: Count nationalities matching current filters
+    const nationalityCounts = db.prepare(`
         SELECT
             u.nationality AS name,
             COUNT(*) AS count
         FROM users u
         ${where}
         GROUP BY u.nationality
-        ORDER BY count DESC, name ASC
-        LIMIT 20
     `).all(...params);
 
-    const hobbies = db.prepare(`
+    // Step 4: Count hobbies matching current filters
+    const hobbyCounts = db.prepare(`
         SELECT
-            h.name AS name,
+            h.name,
             COUNT(DISTINCT u.id) AS count
         FROM users u
-        JOIN user_hobbies uh ON uh.user_id = u.id
-        JOIN hobbies h ON h.id = uh.hobby_id
+        JOIN user_hobbies uh
+            ON uh.user_id = u.id
+        JOIN hobbies h
+            ON h.id = uh.hobby_id
         ${where}
         GROUP BY h.id, h.name
-        ORDER BY count DESC, name ASC
-        LIMIT 20
     `).all(...params);
 
-    return { nationalities, hobbies };
+    // Step 5: Create lookup maps
+    const nationalityCountMap = new Map(
+        nationalityCounts.map(
+            ({ name, count }) => [name, count]
+        )
+    );
+
+    const hobbyCountMap = new Map(
+        hobbyCounts.map(
+            ({ name, count }) => [name, count]
+        )
+    );
+
+    // Step 6: Preserve all options and default missing counts to 0
+    const nationalities = allNationalities.map(
+        ({ name }) => ({
+            name,
+            count: nationalityCountMap.get(name) ?? 0
+        })
+    );
+
+    const hobbies = allHobbies.map(
+        ({ name }) => ({
+            name,
+            count: hobbyCountMap.get(name) ?? 0
+        })
+    );
+
+    // Step 7: Sort options by count, then name
+    const sortFacets = (a, b) =>
+        b.count - a.count || a.name.localeCompare(b.name);
+
+    nationalities.sort(sortFacets);
+    hobbies.sort(sortFacets);
+
+    return {
+        nationalities,
+        hobbies
+    };
 }
+
 
 export function findUsers({
     search = "",
