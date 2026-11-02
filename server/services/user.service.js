@@ -98,16 +98,9 @@ function getUsers({
         const matchedSearch = matchesSearchText(user, normalizedSearchText);
         const matchedNationlity = matchesNationlity(user, nationalities) ;
         const matchedHobbies = matchesHobbies(user, hobbies);
-        // console.log("matchedSearch: ", matchedSearch);
-        // console.log("matchedNationlity: ", matchedNationlity);
-        // console.log("matchedHobbies: ", matchedHobbies);
-        // matchesSearchText(user, normalizedSearchText) && 
-        // matchesNationlity(user, nationalities) &&
-        // matchesHobbies(user, hobbies)
         return matchedSearch && matchedNationlity && matchedHobbies;
     });
 
-    // console.log("filterdUsers: ", filteredUsers)
     const total = filteredUsers.length;
     const facets = {
         nationalities: calculateFacets(filteredUsers, "nationality"),
